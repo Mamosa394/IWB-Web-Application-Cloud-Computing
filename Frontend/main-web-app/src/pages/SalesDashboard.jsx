@@ -10,6 +10,7 @@ import {
   PointElement,
   Filler,
 } from "chart.js";
+import AdminSidebar from "../components/AdminSidebar";
 
 Chart.register(LineElement, CategoryScale, LinearScale, PointElement, Filler);
 
@@ -23,7 +24,6 @@ const SalesDashboard = () => {
   const [status, setStatus] = useState("pending");
   const [paymentMethod, setPaymentMethod] = useState("credit");
   const [saleType, setSaleType] = useState("online");
-
   const [newSale, setNewSale] = useState(null);
 
   const prepareChartData = (data) => {
@@ -130,7 +130,8 @@ const SalesDashboard = () => {
   };
 
   return (
-    <div className="dashboard-container">
+    <div className="sales-dashboard-content">
+      <AdminSidebar />
       <h1 className="dashboard-title">Sales Dashboard</h1>
 
       <div className="dashboard-grid">
@@ -139,6 +140,7 @@ const SalesDashboard = () => {
             <h2>Add New Sale</h2>
             <form onSubmit={handleAddSale}>
               <input
+                className="sales-input"
                 type="text"
                 placeholder="Product"
                 value={product}
@@ -146,6 +148,7 @@ const SalesDashboard = () => {
                 required
               />
               <input
+                className="sales-input"
                 type="number"
                 placeholder="Amount"
                 value={amount}
@@ -153,6 +156,7 @@ const SalesDashboard = () => {
                 required
               />
               <input
+                className="sales-input"
                 type="text"
                 placeholder="Salesperson"
                 value={salesperson}
@@ -160,6 +164,7 @@ const SalesDashboard = () => {
                 required
               />
               <select
+                className="sales-input"
                 value={status}
                 onChange={(e) => setStatus(e.target.value)}
                 required
@@ -169,6 +174,7 @@ const SalesDashboard = () => {
                 <option value="cancelled">Cancelled</option>
               </select>
               <select
+                className="sales-input"
                 value={paymentMethod}
                 onChange={(e) => setPaymentMethod(e.target.value)}
                 required
@@ -179,6 +185,7 @@ const SalesDashboard = () => {
                 <option value="ecocash">Ecocash</option>
               </select>
               <select
+                className="sales-input"
                 value={saleType}
                 onChange={(e) => setSaleType(e.target.value)}
                 required
@@ -186,7 +193,9 @@ const SalesDashboard = () => {
                 <option value="online">Online</option>
                 <option value="in-store">In-Store</option>
               </select>
-              <button type="submit">Add Sale</button>
+              <button className="sales-button" type="submit">
+                Add Sale
+              </button>
             </form>
           </div>
 

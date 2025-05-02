@@ -44,13 +44,11 @@ userSchema.pre("save", async function (next) {
   if (!this.isModified("password")) return next(); // Only hash the password if it's modified
 
   try {
-    // Generate salt
-    const salt = await bcrypt.genSalt(10);
-    // Hash the password
-    this.password = await bcrypt.hash(this.password, salt);
+    const salt = await bcrypt.genSalt(10); // Generate salt
+    this.password = await bcrypt.hash(this.password, salt); // Hash the password
     next();
   } catch (err) {
-    next(err); // Pass error to next middleware
+    next(err);
   }
 });
 
@@ -59,13 +57,13 @@ userSchema.methods.comparePassword = async function (password) {
   try {
     return await bcrypt.compare(password, this.password); // Compare provided password with hashed password
   } catch (err) {
-    throw new Error("Error comparing password"); // Handle error if comparison fails
+    throw new Error("Error comparing password");
   }
 };
 
-// Static method to check if OTP is expired
+// Instance method to check if OTP is expired
 userSchema.methods.isOtpExpired = function () {
-  return this.otpExpires < Date.now();
+  return Date.now() > this.otpExpires; // Check if the OTP expiration date has passed
 };
 
 const User = mongoose.model("User", userSchema);

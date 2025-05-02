@@ -1,193 +1,131 @@
-.dashboard-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 20px;
-  background-color: #2d2d3d;
-  color: #ffffff;
+.sales-dashboard-content {
+  margin-left: 250px;
+  padding: 2rem;
+  background-color: var(--dark-bg);
+  color: var(--white);
   min-height: 100vh;
 }
 
 .dashboard-title {
-  font-size: 2.5rem;
-  margin-bottom: 20px;
-  color: #fbba3f;
-  font-weight: bold;
-  text-align: center;
+  font-size: 2rem;
+  margin-bottom: 1rem;
 }
 
 .dashboard-grid {
-  display: grid;
-  grid-template-columns: 1fr 2fr;
-  gap: 20px;
-  width: 100%;
-  max-width: 1200px;
-  margin-top: 20px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2rem;
 }
 
 .form-container {
-  background-color: #29293d;
-  padding: 25px;
-  border-radius: 12px;
-  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  flex: 1;
+  min-width: 320px;
 }
 
-.form-container:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 12px 20px rgba(0, 0, 0, 0.3);
+.add-sale-form {
+  background-color: var(--panel-dark);
+  padding: 1.5rem;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px var(--shadow-color);
 }
 
 .add-sale-form h2 {
-  margin-bottom: 20px;
-  font-size: 1.8rem;
-  color: #fbba3f;
-  text-align: center;
+  margin-bottom: 1rem;
+  color: var(--accent-color);
 }
 
-.add-sale-form input,
-.add-sale-form select,
-.add-sale-form button {
+.sales-input {
   width: 100%;
-  padding: 12px;
-  margin: 12px 0;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  background-color: #3a3a4d;
-  color: #fff;
-  font-size: 1rem;
-  transition: background-color 0.3s ease;
+  padding: 0.6rem 1rem;
+  margin-bottom: 1rem;
+  border: none;
+  border-radius: 8px;
+  background-color: var(--input-bg);
+  color: var(--white);
 }
 
-.add-sale-form input,
-.add-sale-form select {
-  font-size: 1.1rem;
-}
-
-.add-sale-form button {
-  background-color: #fbba3f;
-  cursor: pointer;
+.sales-button {
+  width: 100%;
+  padding: 0.7rem;
+  background-color: var(--primary-color);
+  border: none;
+  border-radius: 8px;
+  color: var(--white);
   font-weight: bold;
-  transition: background-color 0.3s ease;
+  cursor: pointer;
+  transition: background-color 0.3s;
 }
 
-.add-sale-form input:focus,
-.add-sale-form select:focus,
-.add-sale-form button:focus {
-  outline: none;
-}
-
-.add-sale-form button:hover {
-  background-color: #ffd873;
+.sales-button:hover {
+  background-color: var(--hover-color);
 }
 
 .new-sale-view {
-  background-color: #2d2d3d;
-  padding: 20px;
-  border-radius: 12px;
-  margin-top: 20px;
-  text-align: center;
-}
-
-.new-sale-view h2 {
-  margin-bottom: 15px;
-  font-size: 1.5rem;
-  color: #fbba3f;
-}
-
-.new-sale-view p {
-  margin: 5px 0;
-  font-size: 1rem;
-  color: #ddd;
+  margin-top: 1.5rem;
+  background-color: var(--form-bg);
+  padding: 1rem;
+  border-radius: 10px;
 }
 
 .chart-container {
-  background-color: #29293d;
-  padding: 25px;
-  border-radius: 12px;
-  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+  flex: 2;
+  min-width: 480px;
 }
 
 .chart-section {
-  margin-bottom: 30px;
+  background-color: var(--panel-dark);
+  padding: 1rem;
+  border-radius: 10px;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 4px 8px var(--shadow-color);
 }
 
 .sales-table {
-  margin-top: 20px;
+  background-color: var(--panel-dark);
+  padding: 1rem;
+  border-radius: 10px;
+  overflow-x: auto;
 }
 
 .sales-table table {
   width: 100%;
   border-collapse: collapse;
-  border-radius: 8px;
-  overflow: hidden;
+  color: var(--white);
 }
 
 .sales-table th,
 .sales-table td {
-  padding: 15px 20px;
-  text-align: center;
-  border: 1px solid #ccc;
-  font-size: 1.1rem;
+  padding: 0.75rem;
+  border-bottom: 1px solid var(--light-gray);
+  text-align: left;
 }
 
 .sales-table th {
-  background-color: #3a3a4d;
-  color: #fff;
-  font-weight: bold;
+  background-color: var(--input-bg);
+  color: var(--white);
 }
 
-.sales-table td {
-  background-color: #29293d;
-  color: #ddd;
-}
-
-.sales-table td button {
-  padding: 6px 12px;
-  background-color: #fbba3f;
+.sales-table button {
+  margin-right: 0.5rem;
+  padding: 0.4rem 0.6rem;
   border: none;
-  color: #fff;
-  cursor: pointer;
-  font-size: 0.9rem;
   border-radius: 6px;
-  transition: background-color 0.3s ease, transform 0.2s ease;
+  background-color: var(--primary-color);
+  color: var(--white);
+  cursor: pointer;
 }
 
-.sales-table td button:hover {
-  background-color: #ffd873;
-  transform: translateY(-2px);
-}
-
-.sales-table td button:active {
-  transform: translateY(1px);
-}
-
-.sales-table tr:nth-child(even) td {
-  background-color: #33344d;
-}
-
-.sales-table tr:nth-child(odd) td {
-  background-color: #29293d;
-}
-
-.sales-table td,
-.sales-table th {
-  border-bottom: 1px solid #444;
+.sales-table button:hover {
+  background-color: var(--hover-color);
 }
 
 @media (max-width: 768px) {
+  .sales-dashboard-content {
+    margin-left: 0;
+    padding: 1rem;
+  }
+
   .dashboard-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .form-container,
-  .chart-container {
-    margin: 0 10px;
-  }
-
-  .add-sale-form input,
-  .add-sale-form select,
-  .add-sale-form button {
-    font-size: 1rem;
+    flex-direction: column;
   }
 }

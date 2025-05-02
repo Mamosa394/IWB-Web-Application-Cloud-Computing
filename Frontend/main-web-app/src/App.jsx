@@ -45,7 +45,7 @@ const App = () => {
             <Route path="/settings" element={<AdminSettings />} />
             <Route path="/query-form" element={<QueryForm />} />
             <Route path="/query-list" element={<QueryList />} />
-            <Route path="/landing-page" element={<LandingPage />} />
+            <Route path="/" element={<LandingPage />} />
             <Route path="/about" element={<About />} />
 
             <Route path="/query-lists" element={<QueryList />} />

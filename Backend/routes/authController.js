@@ -35,15 +35,17 @@ export const signup = async (req, res) => {
       password: hashedPassword,
       role: role || "user",
       otp,
-      otpExpires: Date.now() + 10 * 60 * 1000, // 10 min
+      otpExpires: Date.now() + 10 * 60 * 1000, // 10 min expiry
     });
 
+    // Send OTP Email
     await sendEmail(email, "Your OTP Verification Code", `Your OTP is: ${otp}`);
 
     res
       .status(201)
       .json({ message: "Signup successful. Check your email for OTP." });
   } catch (error) {
+    console.error("Signup Error:", error);
     res.status(500).json({ message: "Signup failed", error: error.message });
   }
 };
@@ -57,18 +59,24 @@ export const verifyOTP = async (req, res) => {
       return res.status(404).json({ message: "User not found." });
     }
 
-    // Use instance method to check if OTP is expired
-    if (user.otp !== otp || user.isOtpExpired()) {
-      return res.status(400).json({ message: "Invalid or expired OTP." });
+    // Check if OTP is expired
+    if (user.isOtpExpired()) {
+      return res.status(400).json({ message: "OTP has expired." });
+    }
+
+    // Validate OTP
+    if (user.otp !== otp) {
+      return res.status(400).json({ message: "Invalid OTP." });
     }
 
     user.isVerified = true;
-    user.otp = null;
-    user.otpExpires = null;
+    user.otp = null; // Clear OTP after successful verification
+    user.otpExpires = null; // Clear OTP expiration
     await user.save();
 
     res.status(200).json({ message: "OTP verified successfully." });
   } catch (err) {
+    console.error("OTP Verification Error:", err);
     res
       .status(500)
       .json({ message: "OTP verification failed", error: err.message });
@@ -100,6 +108,7 @@ export const login = async (req, res) => {
 
     res.status(200).json({ token, isAdmin: user.role === "admin" });
   } catch (err) {
+    console.error("Login Error:", err);
     res.status(500).json({ message: "Login error", error: err.message });
   }
 };
@@ -109,6 +118,7 @@ export const getAdminCount = async (req, res) => {
     const count = await User.countDocuments({ role: "admin" });
     res.json({ count });
   } catch (err) {
+    console.error("Get Admin Count Error:", err);
     res.status(500).json({ message: "Could not fetch admin count" });
   }
 };
