@@ -42,6 +42,7 @@ body {
   margin-bottom: 1.5rem;
   box-shadow: 0 4px 8px var(--shadow-color);
   position: relative;
+  margin-top: 10px;
 }
 
 .header-left {

@@ -1,66 +1,47 @@
-/* Global Styles */
-:root {
-  --primary-color: #fbba3f;
-  --hover-color: #ffd873;
-  --dark-bg: #1e1e2f;
-  --panel-dark: #2d2d3d;
-  --form-bg: #29293d;
-  --input-bg: #3a3a4d;
-  --white: #ffffff;
-  --light-gray: #ccc;
-  --lighter-gray: #cedbe9;
-  --error-red: #ff6b6b;
-  --shadow-color: rgba(0, 0, 0, 0.4);
-
-  --accent-color: #4ecdc4;
-  --highlight-color: #2d9c8f;
-  --complementary-color: #006b6f;
-  --light-blue: #a8d8e5;
-  --light-gray-alt: #f0f4f8;
-}
-
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-  font-family: "Arial", sans-serif;
-}
-
-body {
-  background-color: var(--dark-bg);
-
-  line-height: 1.6;
-}
-
 .dashboard-container {
-  max-width: 1200px;
-  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   padding: 20px;
+  background-color: #2d2d3d;
+  color: #ffffff;
+  min-height: 100vh;
 }
 
-h1.dashboard-title {
+.dashboard-title {
   font-size: 2.5rem;
-  font-weight: 700;
-  color: var(--primary-color);
-  text-align: center;
   margin-bottom: 20px;
-  animation: fadeIn 1s ease-out;
+  color: #fbba3f;
+  font-weight: bold;
+  text-align: center;
 }
 
-/* Add Sale Form */
-.add-sale-form {
-  background-color: var(--form-bg);
-  border-radius: 8px;
-  padding: 20px;
-  box-shadow: 0 2px 10px var(--shadow-color);
-  margin-bottom: 30px;
-  animation: slideUp 0.6s ease-out;
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 20px;
+  width: 100%;
+  max-width: 1200px;
+  margin-top: 20px;
+}
+
+.form-container {
+  background-color: #29293d;
+  padding: 25px;
+  border-radius: 12px;
+  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.form-container:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 20px rgba(0, 0, 0, 0.3);
 }
 
 .add-sale-form h2 {
+  margin-bottom: 20px;
   font-size: 1.8rem;
-  color: var(--accent-color);
-  margin-bottom: 15px;
+  color: #fbba3f;
   text-align: center;
 }
 
@@ -68,139 +49,145 @@ h1.dashboard-title {
 .add-sale-form select,
 .add-sale-form button {
   width: 100%;
-  padding: 10px;
-  margin: 10px 0;
-  border: 1px solid var(--lighter-gray);
+  padding: 12px;
+  margin: 12px 0;
+  border: 1px solid #ccc;
   border-radius: 6px;
+  background-color: #3a3a4d;
+  color: #fff;
   font-size: 1rem;
-  background-color: var(--input-bg);
-  color: var(--white);
-}
-
-.add-sale-form button {
-  background-color: var(--primary-color);
-  color: var(--white);
-  cursor: pointer;
   transition: background-color 0.3s ease;
 }
 
-.add-sale-form button:hover {
-  background-color: var(--hover-color);
+.add-sale-form input,
+.add-sale-form select {
+  font-size: 1.1rem;
 }
 
-/* New Sale View */
+.add-sale-form button {
+  background-color: #fbba3f;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background-color 0.3s ease;
+}
+
+.add-sale-form input:focus,
+.add-sale-form select:focus,
+.add-sale-form button:focus {
+  outline: none;
+}
+
+.add-sale-form button:hover {
+  background-color: #ffd873;
+}
+
 .new-sale-view {
-  background-color: var(--panel-dark);
+  background-color: #2d2d3d;
   padding: 20px;
-  border-radius: 8px;
-  margin-bottom: 30px;
-  box-shadow: 0 2px 10px var(--shadow-color);
-  animation: fadeIn 1s ease-out;
+  border-radius: 12px;
+  margin-top: 20px;
+  text-align: center;
 }
 
 .new-sale-view h2 {
-  color: var(--highlight-color);
+  margin-bottom: 15px;
+  font-size: 1.5rem;
+  color: #fbba3f;
 }
 
 .new-sale-view p {
-  margin: 10px 0;
+  margin: 5px 0;
+  font-size: 1rem;
+  color: #ddd;
 }
 
-/* Chart Section */
+.chart-container {
+  background-color: #29293d;
+  padding: 25px;
+  border-radius: 12px;
+  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+}
+
 .chart-section {
-  background-color: var(--panel-dark);
-  padding: 20px;
-  border-radius: 8px;
   margin-bottom: 30px;
-  box-shadow: 0 2px 10px var(--shadow-color);
-  animation: fadeIn 1s ease-out;
 }
 
-.chart-section canvas {
-  max-width: 100%;
-  height: 400px;
-}
-
-/* Sales Table */
 .sales-table {
-  background-color: var(--panel-dark);
-  padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0 2px 10px var(--shadow-color);
-  animation: fadeIn 1s ease-out;
-}
-
-.sales-table h2 {
-  text-align: center;
-  color: var(--highlight-color);
-  margin-bottom: 20px;
+  margin-top: 20px;
 }
 
 .sales-table table {
   width: 100%;
   border-collapse: collapse;
-  text-align: left;
+  border-radius: 8px;
+  overflow: hidden;
 }
 
 .sales-table th,
 .sales-table td {
-  padding: 12px;
-  border-bottom: 1px solid var(--lighter-gray);
+  padding: 15px 20px;
+  text-align: center;
+  border: 1px solid #ccc;
+  font-size: 1.1rem;
 }
 
 .sales-table th {
-  background-color: var(--primary-color);
-  color: var(--white);
+  background-color: #3a3a4d;
+  color: #fff;
+  font-weight: bold;
 }
 
 .sales-table td {
-  background-color: var(--form-bg);
-}
-
-.sales-table button {
-  background-color: var(--accent-color);
-  color: var(--white);
-  padding: 6px 12px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-}
-
-.sales-table button:hover {
-  background-color: var(--highlight-color);
-}
-
-/* Hover Effects */
-.sales-table tr:hover {
-  background-color: var(--lighter-gray);
+  background-color: #29293d;
+  color: #ddd;
 }
 
 .sales-table td button {
-  margin-right: 10px;
+  padding: 6px 12px;
+  background-color: #fbba3f;
+  border: none;
+  color: #fff;
+  cursor: pointer;
+  font-size: 0.9rem;
+  border-radius: 6px;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.sales-table td button:hover {
+  background-color: #ffd873;
+  transform: translateY(-2px);
 }
 
 .sales-table td button:active {
-  transform: scale(0.95);
+  transform: translateY(1px);
 }
 
-/* Animations */
-@keyframes fadeIn {
-  0% {
-    opacity: 0;
-  }
-  100% {
-    opacity: 1;
-  }
+.sales-table tr:nth-child(even) td {
+  background-color: #33344d;
 }
 
-@keyframes slideUp {
-  0% {
-    transform: translateY(50px);
-    opacity: 0;
+.sales-table tr:nth-child(odd) td {
+  background-color: #29293d;
+}
+
+.sales-table td,
+.sales-table th {
+  border-bottom: 1px solid #444;
+}
+
+@media (max-width: 768px) {
+  .dashboard-grid {
+    grid-template-columns: 1fr;
   }
-  100% {
-    transform: translateY(0);
-    opacity: 1;
+
+  .form-container,
+  .chart-container {
+    margin: 0 10px;
+  }
+
+  .add-sale-form input,
+  .add-sale-form select,
+  .add-sale-form button {
+    font-size: 1rem;
   }
 }
