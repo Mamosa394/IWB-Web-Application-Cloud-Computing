@@ -1,0 +1,220 @@
+:root {
+  --primary-color: #fbba3f;
+  --hover-color: #ffd873;
+  --dark-bg: #1e1e2f;
+  --panel-dark: #2d2d3d;
+  --form-bg: #29293d;
+  --input-bg: #3a3a4d;
+  --white: #ffffff;
+  --light-gray: #ccc;
+  --error-red: #ff6b6b;
+  --shadow-color: rgba(0, 0, 0, 0.4);
+}
+
+body {
+  background-color: var(--dark-bg);
+  color: var(--white);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.query-dashboard {
+  padding: 2rem;
+  max-width: 1000px;
+  margin: 0 auto;
+  animation: fadeIn 0.8s ease-in;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.query-dashboard h2,
+.query-dashboard h3 {
+  color: var(--primary-color);
+  margin-bottom: 1rem;
+  animation: slideInLeft 0.6s ease;
+}
+
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-15px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.query-form {
+  background-color: var(--form-bg);
+  padding: 1.5rem;
+  border-radius: 10px;
+  box-shadow: 0 4px 10px var(--shadow-color);
+  margin-bottom: 2rem;
+  transition: transform 0.3s ease;
+}
+
+.query-form:hover {
+  transform: translateY(-4px);
+}
+
+.query-form input,
+.query-form textarea {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  margin-bottom: 1rem;
+  border: none;
+  border-radius: 6px;
+  background-color: var(--input-bg);
+  color: var(--white);
+  font-size: 1rem;
+  transition: background-color 0.3s ease;
+}
+
+.query-form input:focus,
+.query-form textarea:focus {
+  background-color: var(--panel-dark);
+  outline: none;
+}
+
+.query-form input::placeholder,
+.query-form textarea::placeholder {
+  color: var(--light-gray);
+}
+
+.query-form button {
+  background-color: var(--primary-color);
+  color: var(--dark-bg);
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 6px;
+  font-weight: bold;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.query-form button:hover {
+  background-color: var(--hover-color);
+  transform: scale(1.03);
+}
+
+.status-message {
+  margin-top: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.query-chart {
+  max-width: 500px;
+  margin-bottom: 2rem;
+  animation: fadeIn 0.8s ease-in;
+}
+
+.query-table-container {
+  max-height: 350px;
+  overflow-y: auto;
+  background-color: var(--form-bg);
+  border-radius: 10px;
+  padding: 1rem;
+  box-shadow: 0 2px 8px var(--shadow-color);
+  animation: fadeIn 0.9s ease-in;
+}
+
+.query-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.query-table th,
+.query-table td {
+  text-align: left;
+  padding: 0.75rem;
+  border-bottom: 1px solid var(--panel-dark);
+  transition: background-color 0.3s ease;
+}
+
+.query-table th {
+  background-color: var(--panel-dark);
+  color: var(--white);
+  font-weight: bold;
+}
+
+.query-table tr:hover {
+  background-color: var(--input-bg);
+}
+
+.query-table td {
+  color: var(--white);
+  font-size: 0.95rem;
+}
+
+.query-table td.status-pending {
+  color: var(--primary-color);
+}
+
+.query-table td.status-complete {
+  color: #83C760;
+}
+
+.auto-reply-box {
+  background-color: rgba(251, 186, 63, 0.15);
+  padding: 0.5rem;
+  border-left: 4px solid var(--primary-color);
+  border-radius: 6px;
+  font-size: 0.85rem;
+  color: var(--white);
+  animation: fadeIn 0.4s ease-in;
+}
+
+.auto-reply-label {
+  background-color: var(--primary-color);
+  color: var(--dark-bg);
+  padding: 2px 6px;
+  font-size: 0.75rem;
+  font-weight: bold;
+  border-radius: 4px;
+  margin-bottom: 0.3rem;
+  display: inline-block;
+}
+
+.no-reply {
+  font-style: italic;
+  color: var(--light-gray);
+}
+
+.query-list {
+  padding: 2rem;
+  background-color: var(--form-bg);
+  color: var(--white);
+}
+
+.query-table table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--panel-dark);
+  color: var(--white);
+}
+
+.query-table th, .query-table td {
+  border: 1px solid var(--input-bg);
+  padding: 0.75rem;
+  text-align: left;
+}
+
+.toggle-btn, .delete-btn {
+  margin: 0.5rem;
+  padding: 0.4rem 0.8rem;
+  border: none;
+  background-color: var(--primary-color);
+  color: var(--dark-bg);
+  cursor: pointer;
+  border-radius: 4px;
+}
