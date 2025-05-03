@@ -53,7 +53,7 @@ const App = () => {
             <Route path="/repairs" element={<Repairs />} />
 
             <Route path="/otp" element={<OtpVerification />} />
-            <Route path="/contact-us" element={<Contact />} />
+            <Route path="/contact" element={<Contact />} />
           </Routes>
         </main>
       </div>
