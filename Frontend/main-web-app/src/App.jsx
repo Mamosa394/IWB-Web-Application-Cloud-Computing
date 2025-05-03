@@ -20,6 +20,7 @@ import AdminSettings from "./pages/AdminSettings";
 
 import OtpVerification from "./pages/OtpVerification";
 import About from "./pages/About";
+import Contact from "./pages/Contact";
 
 const App = () => {
   return (
@@ -52,6 +53,7 @@ const App = () => {
             <Route path="/repairs" element={<Repairs />} />
 
             <Route path="/otp" element={<OtpVerification />} />
+            <Route path="/contact-us" element={<Contact />} />
           </Routes>
         </main>
       </div>
