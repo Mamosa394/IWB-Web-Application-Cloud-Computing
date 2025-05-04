@@ -47,19 +47,6 @@ const QueryForm = () => {
   const countByStatus = (status) =>
     queries.filter((query) => query.status === status).length;
 
-  const markAsComplete = async (id) => {
-    try {
-      await fetch(`http://localhost:5000/api/client-queries/${id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: 'complete' }),
-      });
-      fetchQueries();
-    } catch (err) {
-      console.error('Error updating status:', err);
-    }
-  };
-
   const chartData = {
     labels: ['Pending', 'Complete'],
     datasets: [
@@ -122,7 +109,6 @@ const QueryForm = () => {
               <th>Status</th>
               <th>Message</th>
               <th>Auto-Reply</th>
-              <th>Action</th> {/* Added this missing header */}
             </tr>
           </thead>
           <tbody>
@@ -133,24 +119,6 @@ const QueryForm = () => {
                 <td>{q.message}</td>
                 <td style={{ color: q.status === 'pending' ? '#ccc' : '#4ea217' }}>
                   {q.autoReply}
-                </td>
-
-                <td>
-                  {q.status === 'pending' && (
-                    <button
-                      onClick={() => markAsComplete(q._id)}
-                      style={{
-                        background: '#83C760',
-                        color: '#1e1e2f',
-                        border: 'none',
-                        padding: '5px 10px',
-                        borderRadius: '4px',
-                        cursor: 'pointer',
-                      }}
-                    >
-                      Mark Complete
-                    </button>
-                  )}
                 </td>
               </tr>
             ))}
