@@ -1,14 +1,7 @@
-import { useState, useEffect } from "react";
-import { Bar } from "react-chartjs-2";
-import {
-  Chart as ChartJS,
-  BarElement,
-  CategoryScale,
-  LinearScale,
-  Tooltip,
-  Legend,
-} from "chart.js";
-import "../styles/query.css";
+import { useState, useEffect } from 'react'; 
+import { Bar } from 'react-chartjs-2';
+import { Chart as ChartJS, BarElement, CategoryScale, LinearScale, Tooltip, Legend } from 'chart.js';
+import '../styles/query.css'; 
 
 ChartJS.register(BarElement, CategoryScale, LinearScale, Tooltip, Legend);
 
@@ -19,7 +12,8 @@ const QueryForm = () => {
     message: "",
   });
   const [queries, setQueries] = useState([]);
-  const [statusMessage, setStatusMessage] = useState("");
+  const [statusMessage, setStatusMessage] = useState('');
+  const [selectedRows, setSelectedRows] = useState([]);
 
   useEffect(() => {
     fetchQueries();
@@ -76,20 +70,30 @@ const QueryForm = () => {
     labels: ["Pending", "Complete"],
     datasets: [
       {
-        label: "Number of Queries",
-        data: [countByStatus("pending"), countByStatus("complete")],
-        backgroundColor: ["#fbba3f", "#83C760"],
+        label: 'Number of Queries',
+        data: [countByStatus('pending'), countByStatus('complete')],
+        backgroundColor: ['#FF6347', '#83C760'],
       },
     ],
   };
 
+  const handleRowSelect = (id) => {
+    setSelectedRows((prevSelected) =>
+      prevSelected.includes(id)
+        ? prevSelected.filter((rowId) => rowId !== id)
+        : [...prevSelected, id]
+    );
+  };
+
+  const isRowSelected = (id) => selectedRows.includes(id);
+
   return (
     <div className="query-container">
-      <h2 className="query-title">Client Query Submission</h2>
-
+      <h2 className="query-title">Client Support</h2>
+      
       <form onSubmit={handleSubmit} className="query-form">
         <input
-          className="queryinput"
+          className="form-input"
           type="text"
           placeholder="Name"
           value={formData.name}
@@ -97,7 +101,7 @@ const QueryForm = () => {
           onChange={(e) => setFormData({ ...formData, name: e.target.value })}
         />
         <input
-          className="queryinput"
+          className="form-input"
           type="email"
           placeholder="Email"
           value={formData.email}
@@ -105,7 +109,7 @@ const QueryForm = () => {
           onChange={(e) => setFormData({ ...formData, email: e.target.value })}
         />
         <textarea
-          className="queryinput"
+          className="form-textarea"
           placeholder="Your message"
           value={formData.message}
           required
@@ -113,22 +117,21 @@ const QueryForm = () => {
             setFormData({ ...formData, message: e.target.value })
           }
         />
-        <button className="submit-button" type="submit">
-          Submit
-        </button>
+        <button type="submit" className="form-button">Submit</button>
         <p className="status-message">{statusMessage}</p>
       </form>
 
-      <h3 className="query-title">Query Stats</h3>
+      <h3 className="query-subtitle">Query Statistics</h3>
       <div className="chart-container">
         <Bar data={chartData} />
       </div>
 
-      <h3 className="query-title">All Queries</h3>
-      <div className="query-table-container">
+      <h3 className="query-subtitle">Query List</h3>
+      <div className="table-wrapper">
         <table className="query-table">
           <thead>
             <tr>
+              <th></th>
               <th>Name</th>
               <th>Status</th>
               <th>Message</th>
@@ -138,19 +141,24 @@ const QueryForm = () => {
           </thead>
           <tbody>
             {queries.map((q) => (
-              <tr key={q._id}>
+              <tr
+                key={q._id}
+                className={`table-row ${isRowSelected(q._id) ? 'selected' : ''}`}
+                onClick={() => handleRowSelect(q._id)}
+              >
+                <td>
+                  <input
+                    type="checkbox"
+                    checked={isRowSelected(q._id)}
+                    onChange={() => handleRowSelect(q._id)}
+                  />
+                </td>
                 <td>{q.name}</td>
-                <td
-                  style={{
-                    color: q.status === "complete" ? "#83C760" : "#fbba3f",
-                  }}
-                >
+                <td className={q.status === 'complete' ? 'status-complete' : 'status-pending'}>
                   {q.status}
                 </td>
                 <td>{q.message}</td>
-                <td
-                  style={{ color: q.status === "pending" ? "#ccc" : "#4ea217" }}
-                >
+                <td className={q.status === 'pending' ? 'reply-pending' : 'reply-complete'}>
                   {q.autoReply}
                 </td>
                 <td>
