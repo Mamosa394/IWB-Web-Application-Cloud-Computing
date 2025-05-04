@@ -19,6 +19,7 @@ import AdminInventory from "./pages/AdminInventory";
 import AdminSettings from "./pages/AdminSettings";
 import OtpVerification from "./pages/OtpVerification";
 import About from "./pages/About";
+import Contact from "./pages/Contact";
 
 const App = () => {
   return (
