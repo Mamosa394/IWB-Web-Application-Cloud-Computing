@@ -1,55 +1,43 @@
-import jwt from "jsonwebtoken";
-import User from "../models/User.js";
+import express from "express";
+import { signup, login, getAdminCount } from "../controllers/authController.js";
+import User from "../models/User.js"; // Add this if you need to query User
 
-// Middleware to verify the JWT token and check user verification status
-export const protect = async (req, res, next) => {
-  let token;
+const router = express.Router();
 
-  // Check if token is present in headers
-  if (
-    req.headers.authorization &&
-    req.headers.authorization.startsWith("Bearer")
-  ) {
-    try {
-      // Get token from header
-      token = req.headers.authorization.split(" ")[1];
+// Route to sign up a user
+router.post("/signup", signup);
 
-      // Decode the token to get user data
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+// Route to login a user
+router.post("/login", login);
 
-      // Find user from the token's userId
-      const user = await User.findById(decoded.id);
+// Route to get the count of admins (No authentication required for this)
+router.get("/admin-count", getAdminCount);
 
-      // If user is not found
-      if (!user) {
-        return res.status(401).json({ message: "User not found" });
-      }
+// Route to get logged-in user's profile (Removed authentication, no `req.user`)
+router.get("/profile", async (req, res) => {
+  try {
+    // We don't have `req.user` anymore, so just querying the user by ID (if provided in query)
+    const userId = req.query.userId; // Assuming you pass `userId` in query params
 
-      // Check if the user is verified
-      if (!user.isVerified) {
-        // Assuming 'isVerified' is a boolean field in the user model
-        return res.status(401).json({ message: "User is not verified" });
-      }
-
-      // Attach user to the request object
-      req.user = user;
-
-      // Proceed to the next middleware
-      next();
-    } catch (err) {
-      return res.status(401).json({ message: "Not authorized, token failed" });
+    if (!userId) {
+      return res.status(400).json({ message: "User ID is required" });
     }
-  } else {
-    // If no token, send an error
-    return res.status(401).json({ message: "No token, authorization denied" });
-  }
-};
 
-// Middleware to check if the user is an admin
-export const adminOnly = (req, res, next) => {
-  if (req.user && req.user.role === "admin") {
-    return next(); // Proceed if the user is an admin
-  } else {
-    return res.status(403).json({ message: "Access denied, admin only" });
+    const user = await User.findById(userId).select("-password");
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    res.json(user);
+  } catch (err) {
+    res.status(500).json({ message: "Server error" });
   }
-};
+});
+
+// Admin-only route to access the admin dashboard (No authentication required)
+router.get("/admin-dashboard", (req, res) => {
+  res.status(200).json({
+    message: "Welcome to the admin dashboard!",
+  });
+});
+
+export default router;

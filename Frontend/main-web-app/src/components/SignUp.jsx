@@ -26,47 +26,44 @@ const SignUp = () => {
     e.preventDefault();
     const { username, email, password, adminCode } = formData;
 
-    // Basic validation for required fields
     if (!username || !email || !password) {
       setError("All fields are required.");
       return;
     }
 
-    // Admin code validation (only for admin sign up)
     if (isAdmin && adminCode !== "IWB-ADMIN-2024") {
       setError("Invalid admin code.");
       return;
     }
 
+    const payload = {
+      username,
+      email,
+      password,
+      role: isAdmin ? "admin" : "user",
+      ...(isAdmin && { adminCode }),
+    };
+
+    console.log("Sending signup payload:", payload);
+
     try {
-      const payload = {
-        username,
-        email,
-        password,
-        role: isAdmin ? "admin" : "user",
-      };
-
-      if (isAdmin) payload.adminCode = adminCode;
-
       const response = await axios.post(
         "http://localhost:5000/api/auth/signup",
         payload
       );
 
+      console.log("Signup response:", response);
+
       if (response.status === 201) {
-        // Redirect to OTP page on success
         navigate("/otp", { state: { email } });
       } else {
         setError("Signup failed. Please try again.");
       }
     } catch (err) {
-      // Improved error handling based on response status
+      console.error("Signup error:", err);
+
       if (err.response) {
-        if (err.response.status === 401) {
-          setError("Unauthorized: Admin code or credentials are incorrect.");
-        } else {
-          setError(err.response?.data?.message || "An error occurred.");
-        }
+        setError(err.response.data?.message || "An error occurred.");
       } else {
         setError("Network error. Please try again.");
       }

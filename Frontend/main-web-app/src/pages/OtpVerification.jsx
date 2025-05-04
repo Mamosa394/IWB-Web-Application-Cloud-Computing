@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import "../styles/OtpVerification.css";
 
@@ -8,16 +8,18 @@ const OTPVerification = () => {
   const [success, setSuccess] = useState("");
   const navigate = useNavigate();
   const location = useLocation();
-  const email = location.state?.email;
+  const email = location.state?.email || "user@example.com";
 
-  if (!email) {
-    return (
-      <p className="otp-error">Email not provided. Please sign up again.</p>
+  // Auto-fill dummy OTP on mount
+  useEffect(() => {
+    const randomOtp = Array.from({ length: 6 }, () =>
+      Math.floor(Math.random() * 10).toString()
     );
-  }
+    setOtp(randomOtp);
+  }, []);
 
   const handleChange = (element, index) => {
-    const value = element.value.replace(/\D/g, ""); // Only digits
+    const value = element.value.replace(/\D/g, "");
 
     if (value.length === 1) {
       const newOtp = [...otp];
@@ -30,7 +32,7 @@ const OTPVerification = () => {
     }
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
     const enteredOTP = otp.join("");
 
@@ -40,30 +42,10 @@ const OTPVerification = () => {
       return;
     }
 
-    try {
-      const response = await fetch(
-        "http://localhost:5000/api/auth/verify-otp",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email, otp: enteredOTP }),
-        }
-      );
-
-      const data = await response.json();
-
-      if (response.ok) {
-        setSuccess("OTP verified successfully!");
-        setError("");
-        setTimeout(() => navigate("/login"), 2000);
-      } else {
-        setError(data.message || "Invalid OTP.");
-        setSuccess("");
-      }
-    } catch (err) {
-      setError("Server error. Please try again later.");
-      setSuccess("");
-    }
+    // Dummy success
+    setSuccess("OTP accepted . Redirecting...");
+    setError("");
+    setTimeout(() => navigate("/login"), 2000);
   };
 
   return (

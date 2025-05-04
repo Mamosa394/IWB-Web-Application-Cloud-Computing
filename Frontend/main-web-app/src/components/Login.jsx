@@ -42,49 +42,14 @@ const Login = () => {
       setLoading(false);
 
       if (response.ok) {
-        if (!data.isVerified) {
-          setError("Your account is not verified. Please check your email.");
-          return;
-        }
+        // Store user profile in session (you can store it in localStorage, sessionStorage, or context)
+        sessionStorage.setItem("userProfile", JSON.stringify(data.user));
 
-        // Save token to localStorage
-        localStorage.setItem("token", data.token);
-
-        // Verify token and fetch user profile
-        const token = localStorage.getItem("token");
-
-        // Make sure the token exists before attempting to use it
-        if (!token) {
-          setError("Failed to retrieve authentication token.");
-          return;
-        }
-
-        const profileRes = await fetch(
-          "http://localhost:5000/api/auth/profile",
-          {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-
-        if (profileRes.ok) {
-          const profileData = await profileRes.json();
-          console.log("✅ Profile:", profileData);
-
-          // Save profile to localStorage
-          localStorage.setItem("userProfile", JSON.stringify(profileData));
-
-          setTimeout(() => {
-            navigate(profileData.isAdmin ? "/admin-dashboard" : "/home-page");
-          }, 1500);
+        // Redirect to the correct dashboard
+        if (data.user.role === "admin") {
+          navigate("/admin-dashboard"); // Redirect to admin dashboard
         } else {
-          const profileError = await profileRes.json();
-          setError(
-            profileError.message || "Failed to fetch user profile with token."
-          );
+          navigate("/home-page"); // Redirect to the home page for normal users
         }
       } else {
         setError(data.message || "Invalid email or password.");

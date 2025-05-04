@@ -25,58 +25,30 @@ const userSchema = new mongoose.Schema(
       enum: ["user", "admin"],
       default: "user",
     },
-    isVerified: {
-      type: Boolean,
-      default: false, // Default is false, this should be updated when user is verified
-    },
-    otp: {
-      type: String,
-    },
-    otpExpires: {
-      type: Date,
-    },
   },
   { timestamps: true }
 );
 
-// Middleware to hash the password before saving the user
 userSchema.pre("save", async function (next) {
-  if (!this.isModified("password")) return next(); // Only hash the password if it's modified
+  if (!this.isModified("password")) return next();
 
   try {
-    const salt = await bcrypt.genSalt(10); // Generate salt
-    this.password = await bcrypt.hash(this.password, salt); // Hash the password
+    const salt = await bcrypt.genSalt(10);
+    this.password = await bcrypt.hash(this.password, salt);
     next();
   } catch (err) {
     next(err);
   }
 });
 
-// Instance method to compare hashed password with a given password
 userSchema.methods.comparePassword = async function (password) {
   try {
-    return await bcrypt.compare(password, this.password); // Compare provided password with hashed password
+    return await bcrypt.compare(password, this.password);
   } catch (err) {
     throw new Error("Error comparing password");
   }
 };
-
-// Instance method to check if OTP is expired
-userSchema.methods.isOtpExpired = function () {
-  return Date.now() > this.otpExpires; // Check if the OTP expiration date has passed
-};
-
-// Method to verify OTP and mark user as verified
-userSchema.methods.verifyOtp = async function (otp) {
-  if (this.otp === otp && !this.isOtpExpired()) {
-    this.isVerified = true; // Set the user as verified
-    this.otp = undefined; // Clear the OTP after successful verification
-    this.otpExpires = undefined; // Clear OTP expiration date
-    await this.save(); // Save changes to the user
-    return true; // OTP verified successfully
-  }
-  return false; // OTP invalid or expired
-};
+console.log("Saving user with role:", this.role);
 
 const User = mongoose.model("User", userSchema);
 export default User;

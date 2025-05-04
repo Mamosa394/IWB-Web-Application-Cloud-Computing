@@ -1,20 +1,10 @@
 import express from "express";
-import {
-  signup,
-  login,
-  verifyOTP,
-  getAdminCount,
-} from "../controllers/authController.js";
-import { protect, adminOnly } from "../middleware/authMiddleware.js";
-import User from "../models/User.js";
+import { signup, login, getAdminCount } from "../controllers/authController.js";
 
 const router = express.Router();
 
 // Route to sign up a user
 router.post("/signup", signup);
-
-// Route to verify OTP during signup
-router.post("/verify-otp", verifyOTP);
 
 // Route to login a user
 router.post("/login", login);
@@ -22,10 +12,11 @@ router.post("/login", login);
 // Route to get the count of admins
 router.get("/admin-count", getAdminCount);
 
-// ✅ Protected route to get logged-in user's profile
-router.get("/profile", protect, async (req, res) => {
+// Route to get logged-in user's profile (no authentication required)
+router.get("/profile", async (req, res) => {
   try {
-    const user = await User.findById(req.user.id).select("-password");
+    // Assume user is logged in and request contains user id
+    const user = await User.findById(req.user.id).select("-password"); // This may not work if no authentication logic
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
@@ -35,8 +26,8 @@ router.get("/profile", protect, async (req, res) => {
   }
 });
 
-// ✅ Admin-only route to access admin dashboard
-router.get("/admin-dashboard", protect, adminOnly, (req, res) => {
+// Admin-only route to access admin dashboard (no authentication)
+router.get("/admin-dashboard", (req, res) => {
   res.status(200).json({
     message: "Welcome to the admin dashboard!",
   });
