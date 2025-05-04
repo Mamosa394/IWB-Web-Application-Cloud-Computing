@@ -26,35 +26,50 @@ const SignUp = () => {
     e.preventDefault();
     const { username, email, password, adminCode } = formData;
 
+    // Basic validation for required fields
     if (!username || !email || !password) {
       setError("All fields are required.");
       return;
     }
 
+    // Admin code validation (only for admin sign up)
     if (isAdmin && adminCode !== "IWB-ADMIN-2024") {
       setError("Invalid admin code.");
       return;
     }
 
     try {
+      const payload = {
+        username,
+        email,
+        password,
+        role: isAdmin ? "admin" : "user",
+      };
+
+      if (isAdmin) payload.adminCode = adminCode;
+
       const response = await axios.post(
         "http://localhost:5000/api/auth/signup",
-        {
-          username,
-          email,
-          password,
-          role: isAdmin ? "admin" : "user",
-          adminCode: isAdmin ? adminCode : undefined,
-        }
+        payload
       );
 
       if (response.status === 201) {
-        navigate("/otp", { state: { email } }); // Redirect to OTP screen
+        // Redirect to OTP page on success
+        navigate("/otp", { state: { email } });
+      } else {
+        setError("Signup failed. Please try again.");
       }
     } catch (err) {
-      setError(
-        err.response?.data?.message || "An error occurred. Please try again."
-      );
+      // Improved error handling based on response status
+      if (err.response) {
+        if (err.response.status === 401) {
+          setError("Unauthorized: Admin code or credentials are incorrect.");
+        } else {
+          setError(err.response?.data?.message || "An error occurred.");
+        }
+      } else {
+        setError("Network error. Please try again.");
+      }
     }
   };
 
@@ -93,6 +108,8 @@ const SignUp = () => {
                 placeholder="Username"
                 value={formData.username}
                 onChange={handleChange}
+                className="sign-input"
+                required
               />
             </div>
 
@@ -104,6 +121,8 @@ const SignUp = () => {
                 placeholder="Email"
                 value={formData.email}
                 onChange={handleChange}
+                className="sign-input"
+                required
               />
             </div>
 
@@ -115,6 +134,8 @@ const SignUp = () => {
                 placeholder="Password"
                 value={formData.password}
                 onChange={handleChange}
+                className="sign-input"
+                required
               />
             </div>
 
@@ -127,6 +148,8 @@ const SignUp = () => {
                   placeholder="Enter Admin Code"
                   value={formData.adminCode}
                   onChange={handleChange}
+                  className="sign-input"
+                  required
                 />
               </div>
             )}

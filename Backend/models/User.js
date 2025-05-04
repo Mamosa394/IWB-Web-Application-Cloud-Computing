@@ -27,7 +27,7 @@ const userSchema = new mongoose.Schema(
     },
     isVerified: {
       type: Boolean,
-      default: false,
+      default: false, // Default is false, this should be updated when user is verified
     },
     otp: {
       type: String,
@@ -64,6 +64,18 @@ userSchema.methods.comparePassword = async function (password) {
 // Instance method to check if OTP is expired
 userSchema.methods.isOtpExpired = function () {
   return Date.now() > this.otpExpires; // Check if the OTP expiration date has passed
+};
+
+// Method to verify OTP and mark user as verified
+userSchema.methods.verifyOtp = async function (otp) {
+  if (this.otp === otp && !this.isOtpExpired()) {
+    this.isVerified = true; // Set the user as verified
+    this.otp = undefined; // Clear the OTP after successful verification
+    this.otpExpires = undefined; // Clear OTP expiration date
+    await this.save(); // Save changes to the user
+    return true; // OTP verified successfully
+  }
+  return false; // OTP invalid or expired
 };
 
 const User = mongoose.model("User", userSchema);

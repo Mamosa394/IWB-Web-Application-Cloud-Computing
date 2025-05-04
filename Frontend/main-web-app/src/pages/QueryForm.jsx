@@ -1,13 +1,25 @@
-import { useState, useEffect } from 'react';
-import { Bar } from 'react-chartjs-2';
-import { Chart as ChartJS, BarElement, CategoryScale, LinearScale, Tooltip, Legend } from 'chart.js';
+import { useState, useEffect } from "react";
+import { Bar } from "react-chartjs-2";
+import {
+  Chart as ChartJS,
+  BarElement,
+  CategoryScale,
+  LinearScale,
+  Tooltip,
+  Legend,
+} from "chart.js";
+import "../styles/query.css";
 
 ChartJS.register(BarElement, CategoryScale, LinearScale, Tooltip, Legend);
 
 const QueryForm = () => {
-  const [formData, setFormData] = useState({ name: '', email: '', message: '' });
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    message: "",
+  });
   const [queries, setQueries] = useState([]);
-  const [statusMessage, setStatusMessage] = useState('');
+  const [statusMessage, setStatusMessage] = useState("");
 
   useEffect(() => {
     fetchQueries();
@@ -15,32 +27,32 @@ const QueryForm = () => {
 
   const fetchQueries = async () => {
     try {
-      const res = await fetch('http://localhost:5000/api/client-queries');
+      const res = await fetch("http://localhost:5000/api/client-queries");
       const data = await res.json();
       setQueries(data);
     } catch (err) {
-      console.error('Error fetching queries:', err);
+      console.error("Error fetching queries:", err);
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setStatusMessage('Submitting...');
+    setStatusMessage("Submitting...");
 
     try {
-      const res = await fetch('http://localhost:5000/api/client-queries', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const res = await fetch("http://localhost:5000/api/client-queries", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
       });
 
       const result = await res.json();
       setStatusMessage(`Query submitted: Status - ${result.status}`);
-      setFormData({ name: '', email: '', message: '' });
+      setFormData({ name: "", email: "", message: "" });
       fetchQueries();
     } catch (err) {
-      console.error('Submission error:', err);
-      setStatusMessage('Submission failed.');
+      console.error("Submission error:", err);
+      setStatusMessage("Submission failed.");
     }
   };
 
@@ -50,34 +62,34 @@ const QueryForm = () => {
   const markAsComplete = async (id) => {
     try {
       await fetch(`http://localhost:5000/api/client-queries/${id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: 'complete' }),
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: "complete" }),
       });
       fetchQueries();
     } catch (err) {
-      console.error('Error updating status:', err);
+      console.error("Error updating status:", err);
     }
   };
 
   const chartData = {
-    labels: ['Pending', 'Complete'],
+    labels: ["Pending", "Complete"],
     datasets: [
       {
-        label: 'Number of Queries',
-        data: [countByStatus('pending'), countByStatus('complete')],
-        backgroundColor: ['#fbba3f', '#83C760'],
+        label: "Number of Queries",
+        data: [countByStatus("pending"), countByStatus("complete")],
+        backgroundColor: ["#fbba3f", "#83C760"],
       },
     ],
   };
 
   return (
-    <div style={{ padding: '2rem', background: '#1e1e2f', color: 'white', fontFamily: 'Arial' }}>
-      <h2 style={{ color: '#fbba3f' }}>Client Query Submission</h2>
+    <div className="query-container">
+      <h2 className="query-title">Client Query Submission</h2>
 
-      <form onSubmit={handleSubmit} style={{ background: '#29293d', padding: '1rem', marginBottom: '2rem', borderRadius: '8px' }}>
+      <form onSubmit={handleSubmit} className="query-form">
         <input
-          style={{ background: '#3a3a4d', color: 'white', margin: '5px', padding: '10px', border: 'none', borderRadius: '5px' }}
+          className="queryinput"
           type="text"
           placeholder="Name"
           value={formData.name}
@@ -85,7 +97,7 @@ const QueryForm = () => {
           onChange={(e) => setFormData({ ...formData, name: e.target.value })}
         />
         <input
-          style={{ background: '#3a3a4d', color: 'white', margin: '5px', padding: '10px', border: 'none', borderRadius: '5px' }}
+          className="queryinput"
           type="email"
           placeholder="Email"
           value={formData.email}
@@ -93,60 +105,59 @@ const QueryForm = () => {
           onChange={(e) => setFormData({ ...formData, email: e.target.value })}
         />
         <textarea
-          style={{ background: '#3a3a4d', color: 'white', margin: '5px', padding: '10px', border: 'none', borderRadius: '5px', width: '100%' }}
+          className="queryinput"
           placeholder="Your message"
           value={formData.message}
           required
-          onChange={(e) => setFormData({ ...formData, message: e.target.value })}
+          onChange={(e) =>
+            setFormData({ ...formData, message: e.target.value })
+          }
         />
-        <button
-          type="submit"
-          style={{ background: '#fbba3f', color: '#1e1e2f', padding: '10px 20px', border: 'none', borderRadius: '5px', cursor: 'pointer' }}
-        >
+        <button className="submit-button" type="submit">
           Submit
         </button>
-        <p>{statusMessage}</p>
+        <p className="status-message">{statusMessage}</p>
       </form>
 
-      <h3 style={{ color: '#fbba3f' }}>Query Stats</h3>
-      <div style={{ maxWidth: '500px', marginBottom: '2rem' }}>
+      <h3 className="query-title">Query Stats</h3>
+      <div className="chart-container">
         <Bar data={chartData} />
       </div>
 
-      <h3 style={{ color: '#fbba3f' }}>All Queries</h3>
-      <div style={{ maxHeight: '300px', overflowY: 'auto', background: '#29293d', borderRadius: '8px', padding: '1rem' }}>
-        <table style={{ width: '100%', color: 'white' }}>
+      <h3 className="query-title">All Queries</h3>
+      <div className="query-table-container">
+        <table className="query-table">
           <thead>
             <tr>
               <th>Name</th>
               <th>Status</th>
               <th>Message</th>
               <th>Auto-Reply</th>
-              <th>Action</th> {/* Added this missing header */}
+              <th>Action</th>
             </tr>
           </thead>
           <tbody>
             {queries.map((q) => (
               <tr key={q._id}>
                 <td>{q.name}</td>
-                <td style={{ color: q.status === 'complete' ? '#83C760' : '#fbba3f' }}>{q.status}</td>
+                <td
+                  style={{
+                    color: q.status === "complete" ? "#83C760" : "#fbba3f",
+                  }}
+                >
+                  {q.status}
+                </td>
                 <td>{q.message}</td>
-                <td style={{ color: q.status === 'pending' ? '#ccc' : '#4ea217' }}>
+                <td
+                  style={{ color: q.status === "pending" ? "#ccc" : "#4ea217" }}
+                >
                   {q.autoReply}
                 </td>
-
                 <td>
-                  {q.status === 'pending' && (
+                  {q.status === "pending" && (
                     <button
                       onClick={() => markAsComplete(q._id)}
-                      style={{
-                        background: '#83C760',
-                        color: '#1e1e2f',
-                        border: 'none',
-                        padding: '5px 10px',
-                        borderRadius: '4px',
-                        cursor: 'pointer',
-                      }}
+                      className="complete-button"
                     >
                       Mark Complete
                     </button>
