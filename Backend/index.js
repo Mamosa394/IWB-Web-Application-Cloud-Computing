@@ -1,8 +1,8 @@
 import express from "express";
 import mongoose from "mongoose";
 import cors from "cors";
-import dotenv from "dotenv";
-import helmet from "helmet"; // Security middleware
+import helmet from "helmet";
+import sgMail from "@sendgrid/mail"; // ✅ Add SendGrid
 
 // Import routes
 import productRoutes from "./routes/productRoutes.js";
@@ -10,25 +10,26 @@ import salesRoute from "./routes/salesRoute.js";
 import queryRoutes from "./routes/queryRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
 
-dotenv.config();
-
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = 5000;
+
+// ✅ MongoDB URI
+const MONGO_URI = "mongodb+srv://thabopiustlou:tlouthabo@bureau.jkkebcq.mongodb.net/?retryWrites=true&w=majority&appName=BUREAU";
+
+// ✅ SendGrid API Key Setup — Replace with your actual API key
+sgMail.setApiKey("SG.YOUR_REAL_API_KEY_HERE"); // 🔁 remember to replace with actual key
 
 // Middleware
 app.use(cors());
-app.use(helmet()); // Adds security headers
+app.use(helmet());
 app.use(express.json());
-app.use("/uploads", express.static("uploads")); // Serve uploaded files
+app.use("/uploads", express.static("uploads"));
 
-// MongoDB Atlas connection
+// ✅ Connect to MongoDB (deprecated options removed)
 mongoose
-  .connect(process.env.MONGO_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  })
+  .connect(MONGO_URI)
   .then(() => console.log("✅ MongoDB connected to TechStore"))
-  .catch((err) => console.error("MongoDB connection error:", err));
+  .catch((err) => console.error("MongoDB Connection Failed:", err));
 
 // Routes
 app.use("/api/products", productRoutes);
@@ -43,15 +44,22 @@ app.use((err, req, res, next) => {
 });
 
 // Graceful Shutdown
+// Graceful Shutdown
 process.on("SIGINT", () => {
   console.log("SIGINT received: closing HTTP server gracefully.");
-  mongoose.connection.close(() => {
-    console.log("MongoDB connection closed.");
-    process.exit(0);
-  });
+  mongoose.connection.close()
+    .then(() => {
+      console.log("MongoDB connection closed.");
+      process.exit(0);
+    })
+    .catch((err) => {
+      console.error("Error closing MongoDB connection:", err);
+      process.exit(1);
+    });
 });
 
-// Start server
+
+// Start Server
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  console.log(`🚀 Server running on port ${PORT}`);
 });
