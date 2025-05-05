@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react'; 
 import { Bar } from 'react-chartjs-2';
 import { Chart as ChartJS, BarElement, CategoryScale, LinearScale, Tooltip, Legend } from 'chart.js';
 import '../styles/query.css'; 
@@ -90,8 +90,7 @@ const QueryForm = () => {
   return (
     <div className="query-container">
       <h2 className="query-title">Client Support</h2>
-
-      <form onSubmit={handleSubmit} className="query-form">
+      
       <form onSubmit={handleSubmit} className="query-form">
         <input
           className="form-input"

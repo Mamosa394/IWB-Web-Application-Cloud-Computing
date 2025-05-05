@@ -141,40 +141,27 @@
 
 .query-table th {
   background-color: var(--panel-dark);
+  color: var(--white);
   font-weight: bold;
 }
 
-.query-table tr:hover,
-.table-row:hover {
+.query-table tr:hover {
   background-color: var(--input-bg);
 }
 
-.table-row {
-  cursor: pointer;
+.query-table td {
+  color: var(--white);
+  font-size: 0.95rem;
 }
 
-.selected {
-  background-color: var(--input-bg);
-}
-
-/* Status Colors */
-.status-complete {
-  color: #83C760;
-}
-
-.status-pending {
+.query-table td.status-pending {
   color: var(--primary-color);
 }
 
-.reply-pending {
-  color: var(--light-gray);
+.query-table td.status-complete {
+  color: #83C760;
 }
 
-.reply-complete {
-  color: #4ea217;
-}
-
-/* Auto Reply Box */
 .auto-reply-box {
   background-color: rgba(251, 186, 63, 0.15);
   padding: 0.5rem;
@@ -200,16 +187,32 @@
   color: var(--light-gray);
 }
 
-/* Buttons */
-.toggle-btn,
-.delete-btn {
+.query-list {
+  padding: 2rem;
+  background-color: var(--form-bg);
+  color: var(--white);
+}
+
+.query-table table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--panel-dark);
+  color: var(--white);
+}
+
+.query-table th, .query-table td {
+  border: 1px solid var(--input-bg);
+  padding: 0.75rem;
+  text-align: left;
+}
+
+.toggle-btn, .delete-btn {
   margin: 0.5rem;
   padding: 0.4rem 0.8rem;
   border: none;
   background-color: var(--primary-color);
   color: var(--dark-bg);
   cursor: pointer;
-  border-radius: 4px;
 }
 
 /* General Container & Titles */
