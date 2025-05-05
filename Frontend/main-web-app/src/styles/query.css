@@ -7,6 +7,7 @@
   --input-bg: #3a3a4d;
   --white: #ffffff;
   --light-gray: #ccc;
+  --lighter-gray: #cedbe9;
   --error-red: #ff6b6b;
   --shadow-color: rgba(0, 0, 0, 0.4);
 }
@@ -17,6 +18,7 @@ body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
+/* Dashboard Layout */
 .query-dashboard {
   padding: 2rem;
   max-width: 1000px;
@@ -25,14 +27,8 @@ body {
 }
 
 @keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .query-dashboard h2,
@@ -43,19 +39,15 @@ body {
 }
 
 @keyframes slideInLeft {
-  from {
-    opacity: 0;
-    transform: translateX(-15px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
+  from { opacity: 0; transform: translateX(-15px); }
+  to { opacity: 1; transform: translateX(0); }
 }
 
+/* Form Styles */
 .query-form {
   background-color: var(--form-bg);
-  padding: 1.5rem;
+  width: 70%;
+  margin-left: 150px;
   border-radius: 10px;
   box-shadow: 0 4px 10px var(--shadow-color);
   margin-bottom: 2rem;
@@ -68,9 +60,10 @@ body {
 
 .query-form input,
 .query-form textarea {
-  width: 100%;
-  padding: 0.75rem 1rem;
-  margin-bottom: 1rem;
+  width: 80%;
+  padding: 0.5rem 2rem;
+  margin-top: 20px;
+  margin-bottom: 10px;
   border: none;
   border-radius: 6px;
   background-color: var(--input-bg);
@@ -107,18 +100,28 @@ body {
   transform: scale(1.03);
 }
 
+/* Status Message */
 .status-message {
-  margin-top: 0.5rem;
+  margin-top: 10px;
   font-size: 0.9rem;
+  color: var(--white);
 }
 
-.query-chart {
-  max-width: 500px;
+/* Chart Container */
+.chart-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-left: 2rem;
+  max-width: 1000px;
   margin-bottom: 2rem;
-  animation: fadeIn 0.8s ease-in;
 }
 
-.query-table-container {
+/* Query Table Container */
+.query-table-container,
+.table-wrapper {
+  width: 75%;
+  margin-left: 130px;
   max-height: 350px;
   overflow-y: auto;
   background-color: var(--form-bg);
@@ -128,42 +131,57 @@ body {
   animation: fadeIn 0.9s ease-in;
 }
 
+/* Table Styles */
 .query-table {
   width: 100%;
   border-collapse: collapse;
+  color: var(--white);
 }
 
 .query-table th,
 .query-table td {
-  text-align: left;
   padding: 0.75rem;
-  border-bottom: 1px solid var(--panel-dark);
+  text-align: left;
+  border: 1px solid var(--input-bg);
   transition: background-color 0.3s ease;
 }
 
 .query-table th {
   background-color: var(--panel-dark);
-  color: var(--white);
   font-weight: bold;
 }
 
-.query-table tr:hover {
+.query-table tr:hover,
+.table-row:hover {
   background-color: var(--input-bg);
 }
 
-.query-table td {
-  color: var(--white);
-  font-size: 0.95rem;
+.table-row {
+  cursor: pointer;
 }
 
-.query-table td.status-pending {
-  color: var(--primary-color);
+.selected {
+  background-color: var(--input-bg);
 }
 
-.query-table td.status-complete {
+/* Status Colors */
+.status-complete {
   color: #83C760;
 }
 
+.status-pending {
+  color: var(--primary-color);
+}
+
+.reply-pending {
+  color: var(--light-gray);
+}
+
+.reply-complete {
+  color: #4ea217;
+}
+
+/* Auto Reply Box */
 .auto-reply-box {
   background-color: rgba(251, 186, 63, 0.15);
   padding: 0.5rem;
@@ -190,26 +208,9 @@ body {
   color: var(--light-gray);
 }
 
-.query-list {
-  padding: 2rem;
-  background-color: var(--form-bg);
-  color: var(--white);
-}
-
-.query-table table {
-  width: 100%;
-  border-collapse: collapse;
-  background: var(--panel-dark);
-  color: var(--white);
-}
-
-.query-table th, .query-table td {
-  border: 1px solid var(--input-bg);
-  padding: 0.75rem;
-  text-align: left;
-}
-
-.toggle-btn, .delete-btn {
+/* Buttons */
+.toggle-btn,
+.delete-btn {
   margin: 0.5rem;
   padding: 0.4rem 0.8rem;
   border: none;
@@ -217,4 +218,26 @@ body {
   color: var(--dark-bg);
   cursor: pointer;
   border-radius: 4px;
+}
+
+/* General Container & Titles */
+.query-container {
+  padding: 1rem;
+  background: var(--dark-bg);
+  color: var(--white);
+}
+
+.query-title,
+.query-subtitle {
+  color: var(--primary-color);
+  text-align: center;
+}
+
+.heading {
+  text-align: center;
+  color: var(--primary-color);
+}
+
+.query-list {
+  background-color: var(--dark-bg);
 }

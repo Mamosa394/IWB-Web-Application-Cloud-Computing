@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Bar } from 'react-chartjs-2';
 import { Chart as ChartJS, BarElement, CategoryScale, LinearScale, Tooltip, Legend } from 'chart.js';
+import '../styles/query.css'; 
 
 ChartJS.register(BarElement, CategoryScale, LinearScale, Tooltip, Legend);
 
@@ -8,6 +9,7 @@ const QueryForm = () => {
   const [formData, setFormData] = useState({ name: '', email: '', message: '' });
   const [queries, setQueries] = useState([]);
   const [statusMessage, setStatusMessage] = useState('');
+  const [selectedRows, setSelectedRows] = useState([]);
 
   useEffect(() => {
     fetchQueries();
@@ -53,18 +55,28 @@ const QueryForm = () => {
       {
         label: 'Number of Queries',
         data: [countByStatus('pending'), countByStatus('complete')],
-        backgroundColor: ['#fbba3f', '#83C760'],
+        backgroundColor: ['#FF6347', '#83C760'],
       },
     ],
   };
 
-  return (
-    <div style={{ padding: '2rem', background: '#1e1e2f', color: 'white', fontFamily: 'Arial' }}>
-      <h2 style={{ color: '#fbba3f' }}>Client Query Submission</h2>
+  const handleRowSelect = (id) => {
+    setSelectedRows((prevSelected) =>
+      prevSelected.includes(id)
+        ? prevSelected.filter((rowId) => rowId !== id)
+        : [...prevSelected, id]
+    );
+  };
 
-      <form onSubmit={handleSubmit} style={{ background: '#29293d', padding: '1rem', marginBottom: '2rem', borderRadius: '8px' }}>
+  const isRowSelected = (id) => selectedRows.includes(id);
+
+  return (
+    <div className="query-container">
+      <h2 className="query-title">Client Support</h2>
+
+      <form onSubmit={handleSubmit} className="query-form">
         <input
-          style={{ background: '#3a3a4d', color: 'white', margin: '5px', padding: '10px', border: 'none', borderRadius: '5px' }}
+          className="form-input"
           type="text"
           placeholder="Name"
           value={formData.name}
@@ -72,7 +84,7 @@ const QueryForm = () => {
           onChange={(e) => setFormData({ ...formData, name: e.target.value })}
         />
         <input
-          style={{ background: '#3a3a4d', color: 'white', margin: '5px', padding: '10px', border: 'none', borderRadius: '5px' }}
+          className="form-input"
           type="email"
           placeholder="Email"
           value={formData.email}
@@ -80,31 +92,27 @@ const QueryForm = () => {
           onChange={(e) => setFormData({ ...formData, email: e.target.value })}
         />
         <textarea
-          style={{ background: '#3a3a4d', color: 'white', margin: '5px', padding: '10px', border: 'none', borderRadius: '5px', width: '100%' }}
+          className="form-textarea"
           placeholder="Your message"
           value={formData.message}
           required
           onChange={(e) => setFormData({ ...formData, message: e.target.value })}
         />
-        <button
-          type="submit"
-          style={{ background: '#fbba3f', color: '#1e1e2f', padding: '10px 20px', border: 'none', borderRadius: '5px', cursor: 'pointer' }}
-        >
-          Submit
-        </button>
-        <p>{statusMessage}</p>
+        <button type="submit" className="form-button">Submit</button>
+        <p className="status-message">{statusMessage}</p>
       </form>
 
-      <h3 style={{ color: '#fbba3f' }}>Query Stats</h3>
-      <div style={{ maxWidth: '500px', marginBottom: '2rem' }}>
+      <h3 className="query-subtitle">Query Statistics</h3>
+      <div className="chart-container">
         <Bar data={chartData} />
       </div>
 
-      <h3 style={{ color: '#fbba3f' }}>All Queries</h3>
-      <div style={{ maxHeight: '300px', overflowY: 'auto', background: '#29293d', borderRadius: '8px', padding: '1rem' }}>
-        <table style={{ width: '100%', color: 'white' }}>
+      <h3 className="query-subtitle">Query List</h3>
+      <div className="table-wrapper">
+        <table className="query-table">
           <thead>
             <tr>
+              <th></th>
               <th>Name</th>
               <th>Status</th>
               <th>Message</th>
@@ -113,11 +121,24 @@ const QueryForm = () => {
           </thead>
           <tbody>
             {queries.map((q) => (
-              <tr key={q._id}>
+              <tr
+                key={q._id}
+                className={`table-row ${isRowSelected(q._id) ? 'selected' : ''}`}
+                onClick={() => handleRowSelect(q._id)}
+              >
+                <td>
+                  <input
+                    type="checkbox"
+                    checked={isRowSelected(q._id)}
+                    onChange={() => handleRowSelect(q._id)}
+                  />
+                </td>
                 <td>{q.name}</td>
-                <td style={{ color: q.status === 'complete' ? '#83C760' : '#fbba3f' }}>{q.status}</td>
+                <td className={q.status === 'complete' ? 'status-complete' : 'status-pending'}>
+                  {q.status}
+                </td>
                 <td>{q.message}</td>
-                <td style={{ color: q.status === 'pending' ? '#ccc' : '#4ea217' }}>
+                <td className={q.status === 'pending' ? 'reply-pending' : 'reply-complete'}>
                   {q.autoReply}
                 </td>
               </tr>
