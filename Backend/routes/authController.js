@@ -35,17 +35,15 @@ export const signup = async (req, res) => {
       password: hashedPassword,
       role: role || "user",
       otp,
-      otpExpires: Date.now() + 10 * 60 * 1000, // 10 min expiry
+      otpExpires: Date.now() + 10 * 60 * 1000, // 10 min
     });
 
-    // Send OTP Email
     await sendEmail(email, "Your OTP Verification Code", `Your OTP is: ${otp}`);
 
     res
       .status(201)
       .json({ message: "Signup successful. Check your email for OTP." });
   } catch (error) {
-    console.error("Signup Error:", error);
     res.status(500).json({ message: "Signup failed", error: error.message });
   }
 };
@@ -59,24 +57,18 @@ export const verifyOTP = async (req, res) => {
       return res.status(404).json({ message: "User not found." });
     }
 
-    // Check if OTP is expired
-    if (user.isOtpExpired()) {
-      return res.status(400).json({ message: "OTP has expired." });
-    }
-
-    // Validate OTP
-    if (user.otp !== otp) {
-      return res.status(400).json({ message: "Invalid OTP." });
+    // Check if OTP matches and is not expired
+    if (user.otp !== otp || user.otpExpires < Date.now()) {
+      return res.status(400).json({ message: "Invalid or expired OTP." });
     }
 
     user.isVerified = true;
-    user.otp = null; // Clear OTP after successful verification
-    user.otpExpires = null; // Clear OTP expiration
+    user.otp = null;
+    user.otpExpires = null;
     await user.save();
 
     res.status(200).json({ message: "OTP verified successfully." });
   } catch (err) {
-    console.error("OTP Verification Error:", err);
     res
       .status(500)
       .json({ message: "OTP verification failed", error: err.message });
@@ -88,8 +80,13 @@ export const login = async (req, res) => {
     const { email, password } = req.body;
     const user = await User.findOne({ email });
 
-    if (!user || !(await user.comparePassword(password))) {
-      return res.status(401).json({ message: "Invalid credentials" });
+    if (!user) {
+      return res.status(401).json({ message: "Invalid credentials." });
+    }
+
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) {
+      return res.status(401).json({ message: "Invalid credentials." });
     }
 
     if (!user.isVerified) {
@@ -108,7 +105,6 @@ export const login = async (req, res) => {
 
     res.status(200).json({ token, isAdmin: user.role === "admin" });
   } catch (err) {
-    console.error("Login Error:", err);
     res.status(500).json({ message: "Login error", error: err.message });
   }
 };
@@ -118,7 +114,6 @@ export const getAdminCount = async (req, res) => {
     const count = await User.countDocuments({ role: "admin" });
     res.json({ count });
   } catch (err) {
-    console.error("Get Admin Count Error:", err);
     res.status(500).json({ message: "Could not fetch admin count" });
   }
 };

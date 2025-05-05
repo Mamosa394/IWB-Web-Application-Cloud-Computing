@@ -14,7 +14,8 @@ const app = express();
 const PORT = 5000;
 
 // ✅ MongoDB URI
-const MONGO_URI = "mongodb+srv://thabopiustlou:tlouthabo@bureau.jkkebcq.mongodb.net/?retryWrites=true&w=majority&appName=BUREAU";
+const MONGO_URI =
+  "mongodb+srv://thabopiustlou:tlouthabo@bureau.jkkebcq.mongodb.net/?retryWrites=true&w=majority&appName=BUREAU";
 
 // ✅ SendGrid API Key Setup — Replace with your actual API key
 sgMail.setApiKey("SG.YOUR_REAL_API_KEY_HERE"); // 🔁 remember to replace with actual key
@@ -35,7 +36,7 @@ mongoose
 app.use("/api/products", productRoutes);
 app.use("/api/sales", salesRoute);
 app.use("/api/client-queries", queryRoutes);
-app.use("/api/auth", authRoutes);
+app.use("/api/auth", authRoutes); // The auth routes for signup, login, etc.
 
 // Global Error Handler
 app.use((err, req, res, next) => {
@@ -47,7 +48,8 @@ app.use((err, req, res, next) => {
 // Graceful Shutdown
 process.on("SIGINT", () => {
   console.log("SIGINT received: closing HTTP server gracefully.");
-  mongoose.connection.close()
+  mongoose.connection
+    .close()
     .then(() => {
       console.log("MongoDB connection closed.");
       process.exit(0);
@@ -57,7 +59,6 @@ process.on("SIGINT", () => {
       process.exit(1);
     });
 });
-
 
 // Start Server
 app.listen(PORT, () => {

@@ -1,8 +1,7 @@
 :root {
   --primary-color: #fbba3f;
-  --hover-color: #ffd873;
+  --complete-color: #83c760;
   --dark-bg: #1e1e2f;
-  --panel-dark: #2d2d3d;
   --form-bg: #29293d;
   --input-bg: #3a3a4d;
   --white: #ffffff;
@@ -12,10 +11,11 @@
   --shadow-color: rgba(0, 0, 0, 0.4);
 }
 
-body {
-  background-color: var(--dark-bg);
+.query-container {
+  padding: 2rem;
+  background: var(--dark-bg);
   color: var(--white);
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-family: Arial, sans-serif;
 }
 
 /* Dashboard Layout */
@@ -68,29 +68,23 @@ body {
   border-radius: 6px;
   background-color: var(--input-bg);
   color: var(--white);
-  font-size: 1rem;
-  transition: background-color 0.3s ease;
+  margin: 5px 0;
+  padding: 10px;
+  border: none;
+  border-radius: 5px;
+  width: 100%;
 }
 
-.query-form input:focus,
-.query-form textarea:focus {
-  background-color: var(--panel-dark);
-  outline: none;
-}
-
-.query-form input::placeholder,
-.query-form textarea::placeholder {
+.queryinput::placeholder {
   color: var(--light-gray);
 }
 
-.query-form button {
-  background-color: var(--primary-color);
+.submit-button {
+  background: var(--primary-color);
   color: var(--dark-bg);
-  padding: 0.75rem 1.5rem;
+  padding: 10px 20px;
   border: none;
-  border-radius: 6px;
-  font-weight: bold;
-  font-size: 1rem;
+  border-radius: 5px;
   cursor: pointer;
   transition: background-color 0.3s ease, transform 0.2s ease;
 }
@@ -124,16 +118,15 @@ body {
   margin-left: 130px;
   max-height: 350px;
   overflow-y: auto;
-  background-color: var(--form-bg);
-  border-radius: 10px;
+  background: var(--form-bg);
+  border-radius: 8px;
   padding: 1rem;
-  box-shadow: 0 2px 8px var(--shadow-color);
-  animation: fadeIn 0.9s ease-in;
 }
 
 /* Table Styles */
 .query-table {
   width: 100%;
+  color: var(--white);
   border-collapse: collapse;
   color: var(--white);
 }
@@ -195,9 +188,8 @@ body {
 .auto-reply-label {
   background-color: var(--primary-color);
   color: var(--dark-bg);
-  padding: 2px 6px;
-  font-size: 0.75rem;
-  font-weight: bold;
+  border: none;
+  padding: 5px 10px;
   border-radius: 4px;
   margin-bottom: 0.3rem;
   display: inline-block;

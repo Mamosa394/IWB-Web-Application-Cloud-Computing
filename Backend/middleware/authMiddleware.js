@@ -1,7 +1,7 @@
 import jwt from "jsonwebtoken";
-import User from "../models/userModel.js"; // Adjust the path if needed
+import User from "../models/User.js";
 
-// Middleware to verify the JWT token
+// Middleware to verify the JWT token and check user verification status
 export const protect = async (req, res, next) => {
   let token;
 
@@ -25,6 +25,12 @@ export const protect = async (req, res, next) => {
         return res.status(401).json({ message: "User not found" });
       }
 
+      // Check if the user is verified
+      if (!user.isVerified) {
+        // Assuming 'isVerified' is a boolean field in the user model
+        return res.status(401).json({ message: "User is not verified" });
+      }
+
       // Attach user to the request object
       req.user = user;
 
@@ -33,10 +39,8 @@ export const protect = async (req, res, next) => {
     } catch (err) {
       return res.status(401).json({ message: "Not authorized, token failed" });
     }
-  }
-
-  // If no token, send an error
-  if (!token) {
+  } else {
+    // If no token, send an error
     return res.status(401).json({ message: "No token, authorization denied" });
   }
 };

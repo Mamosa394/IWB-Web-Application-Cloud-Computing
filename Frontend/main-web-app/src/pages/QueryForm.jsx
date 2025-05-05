@@ -6,7 +6,11 @@ import '../styles/query.css';
 ChartJS.register(BarElement, CategoryScale, LinearScale, Tooltip, Legend);
 
 const QueryForm = () => {
-  const [formData, setFormData] = useState({ name: '', email: '', message: '' });
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    message: "",
+  });
   const [queries, setQueries] = useState([]);
   const [statusMessage, setStatusMessage] = useState('');
   const [selectedRows, setSelectedRows] = useState([]);
@@ -17,40 +21,53 @@ const QueryForm = () => {
 
   const fetchQueries = async () => {
     try {
-      const res = await fetch('http://localhost:5000/api/client-queries');
+      const res = await fetch("http://localhost:5000/api/client-queries");
       const data = await res.json();
       setQueries(data);
     } catch (err) {
-      console.error('Error fetching queries:', err);
+      console.error("Error fetching queries:", err);
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setStatusMessage('Submitting...');
+    setStatusMessage("Submitting...");
 
     try {
-      const res = await fetch('http://localhost:5000/api/client-queries', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const res = await fetch("http://localhost:5000/api/client-queries", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
       });
 
       const result = await res.json();
       setStatusMessage(`Query submitted: Status - ${result.status}`);
-      setFormData({ name: '', email: '', message: '' });
+      setFormData({ name: "", email: "", message: "" });
       fetchQueries();
     } catch (err) {
-      console.error('Submission error:', err);
-      setStatusMessage('Submission failed.');
+      console.error("Submission error:", err);
+      setStatusMessage("Submission failed.");
     }
   };
 
   const countByStatus = (status) =>
     queries.filter((query) => query.status === status).length;
 
+  const markAsComplete = async (id) => {
+    try {
+      await fetch(`http://localhost:5000/api/client-queries/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: "complete" }),
+      });
+      fetchQueries();
+    } catch (err) {
+      console.error("Error updating status:", err);
+    }
+  };
+
   const chartData = {
-    labels: ['Pending', 'Complete'],
+    labels: ["Pending", "Complete"],
     datasets: [
       {
         label: 'Number of Queries',
@@ -75,6 +92,7 @@ const QueryForm = () => {
       <h2 className="query-title">Client Support</h2>
 
       <form onSubmit={handleSubmit} className="query-form">
+      <form onSubmit={handleSubmit} className="query-form">
         <input
           className="form-input"
           type="text"
@@ -96,7 +114,9 @@ const QueryForm = () => {
           placeholder="Your message"
           value={formData.message}
           required
-          onChange={(e) => setFormData({ ...formData, message: e.target.value })}
+          onChange={(e) =>
+            setFormData({ ...formData, message: e.target.value })
+          }
         />
         <button type="submit" className="form-button">Submit</button>
         <p className="status-message">{statusMessage}</p>
@@ -117,6 +137,7 @@ const QueryForm = () => {
               <th>Status</th>
               <th>Message</th>
               <th>Auto-Reply</th>
+              <th>Action</th>
             </tr>
           </thead>
           <tbody>
@@ -140,6 +161,16 @@ const QueryForm = () => {
                 <td>{q.message}</td>
                 <td className={q.status === 'pending' ? 'reply-pending' : 'reply-complete'}>
                   {q.autoReply}
+                </td>
+                <td>
+                  {q.status === "pending" && (
+                    <button
+                      onClick={() => markAsComplete(q._id)}
+                      className="complete-button"
+                    >
+                      Mark Complete
+                    </button>
+                  )}
                 </td>
               </tr>
             ))}

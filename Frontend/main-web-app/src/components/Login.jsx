@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/Login.css";
 import robotImage from "/images/ROBOT.png";
@@ -9,15 +9,12 @@ const Login = () => {
     password: "",
   });
   const [error, setError] = useState("");
-  const [successMessage, setSuccessMessage] = useState("");
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData({
-      ...formData,
-      [name]: value,
-    });
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e) => {
@@ -30,7 +27,7 @@ const Login = () => {
     }
 
     setError("");
-    setSuccessMessage("");
+    setLoading(true);
 
     try {
       const response = await fetch("http://localhost:5000/api/auth/login", {
@@ -42,19 +39,59 @@ const Login = () => {
       });
 
       const data = await response.json();
+      setLoading(false);
 
       if (response.ok) {
-        localStorage.setItem("token", data.token);
-        setSuccessMessage("Login successful! Redirecting...");
+        if (!data.isVerified) {
+          setError("Your account is not verified. Please check your email.");
+          return;
+        }
 
-        setTimeout(() => {
-          navigate(data.isAdmin ? "/admin-dashboard" : "/home-page");
-        }, 1500);
+        // Save token to localStorage
+        localStorage.setItem("token", data.token);
+
+        // Verify token and fetch user profile
+        const token = localStorage.getItem("token");
+
+        // Make sure the token exists before attempting to use it
+        if (!token) {
+          setError("Failed to retrieve authentication token.");
+          return;
+        }
+
+        const profileRes = await fetch(
+          "http://localhost:5000/api/auth/profile",
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        if (profileRes.ok) {
+          const profileData = await profileRes.json();
+          console.log("✅ Profile:", profileData);
+
+          // Save profile to localStorage
+          localStorage.setItem("userProfile", JSON.stringify(profileData));
+
+          setTimeout(() => {
+            navigate(profileData.isAdmin ? "/admin-dashboard" : "/home-page");
+          }, 1500);
+        } else {
+          const profileError = await profileRes.json();
+          setError(
+            profileError.message || "Failed to fetch user profile with token."
+          );
+        }
       } else {
         setError(data.message || "Invalid email or password.");
       }
     } catch (err) {
-      setError("Unable to connect to the server. Please try again.");
+      setLoading(false);
+      setError("Unable to connect to the server. Please try again later.");
     }
   };
 
@@ -111,12 +148,13 @@ const Login = () => {
                 </div>
 
                 {error && <p className="login-page-error">{error}</p>}
-                {successMessage && (
-                  <p className="login-page-success-message">{successMessage}</p>
-                )}
 
-                <button type="submit" className="login-page-signup-btn">
-                  Login
+                <button
+                  type="submit"
+                  className="login-page-signup-btn"
+                  disabled={loading}
+                >
+                  {loading ? "Logging in..." : "Login"}
                 </button>
               </form>
             </div>
