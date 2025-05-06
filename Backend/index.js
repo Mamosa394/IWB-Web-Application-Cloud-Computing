@@ -1,14 +1,10 @@
 import express from "express";
 import mongoose from "mongoose";
-import cors from "cors";
 import dotenv from "dotenv";
+import cors from "cors";
 import helmet from "helmet";
-
-// Import routes
-import productRoutes from "./routes/productRoutes.js";
-import salesRoute from "./routes/salesRoute.js";
-import queryRoutes from "./routes/queryRoutes.js";
-import authRoutes from "./routes/authRoutes.js"; // Auth routes updated with new routes
+import authRoutes from "./routes/authRoutes.js"; // Updated auth routes
+import otpRoutes from "./routes/otpRoutes.js"; // Updated OTP routes
 
 dotenv.config();
 
@@ -19,7 +15,7 @@ const PORT = process.env.PORT || 5000;
 app.use(cors());
 app.use(helmet());
 app.use(express.json());
-app.use("/uploads", express.static("uploads"));
+app.use("/api/otp", otpRoutes);
 
 // MongoDB Connection
 mongoose
@@ -31,32 +27,8 @@ mongoose
   .catch((err) => console.error("❌ MongoDB connection error:", err));
 
 // Routes
-app.use("/api/products", productRoutes);
-app.use("/api/sales", salesRoute);
-app.use("/api/client-queries", queryRoutes);
 app.use("/api/auth", authRoutes);
-
-// Global Error Handler
-app.use((err, req, res, next) => {
-  console.error("Unhandled Error:", err);
-  res.status(500).json({ message: "Internal Server Error" });
-});
-
-// Graceful Shutdown using async/await
-const gracefulShutdown = async () => {
-  try {
-    console.log("SIGINT received: closing MongoDB connection...");
-    await mongoose.connection.close();
-    console.log("✅ MongoDB connection closed.");
-    process.exit(0);
-  } catch (err) {
-    console.error("❌ Error during shutdown:", err);
-    process.exit(1);
-  }
-};
-
-process.on("SIGINT", gracefulShutdown);
-process.on("SIGTERM", gracefulShutdown); // optional for cloud environments
+app.use("/api/otp", otpRoutes); // New OTP route
 
 // Start server
 app.listen(PORT, () => {
