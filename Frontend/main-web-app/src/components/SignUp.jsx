@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import { FaUser, FaEnvelope, FaLock } from "react-icons/fa";
+import { FaUser, FaEnvelope, FaLock, FaShieldAlt } from "react-icons/fa";
 import "../styles/SignUp.css";
 import robotImage from "/images/ROBOT.png";
 import logo from "/images/logo.jpg";
@@ -15,6 +15,7 @@ const SignUp = () => {
   });
   const [isAdmin, setIsAdmin] = useState(false);
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
@@ -23,21 +24,31 @@ const SignUp = () => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  const handleAdminToggle = () => {
+    setIsAdmin(!isAdmin);
+    // Clear admin code when toggling
+    if (!isAdmin) {
+      setFormData((prev) => ({ ...prev, adminCode: "" }));
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+    setSuccess("");
     setLoading(true);
 
     const { username, email, password, adminCode } = formData;
 
+    // Validation
     if (!username || !email || !password) {
       setError("All fields are required.");
       setLoading(false);
       return;
     }
 
-    if (isAdmin && adminCode !== "IWB-ADMIN-2024") {
-      setError("Invalid admin code.");
+    if (isAdmin && !adminCode) {
+      setError("Admin registration code is required.");
       setLoading(false);
       return;
     }
@@ -47,26 +58,34 @@ const SignUp = () => {
       email,
       password,
       role: isAdmin ? "admin" : "user",
-      ...(isAdmin && { adminCode }),
+      ...(isAdmin && { adminCode }), // Only include adminCode if registering as admin
     };
 
     try {
       const response = await axios.post(
-        "http://localhost:5000/api/auth/signup",
+        `${process.env.REACT_APP_API_URL}/api/auth/signup`,
         payload,
-        { withCredentials: true } // Send cookies along with the request
+        {
+          withCredentials: true,
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
       );
+
       if (response.status === 200 || response.status === 201) {
-        const otpRoute = isAdmin ? "/otp/admin" : "/otp";
-        navigate(otpRoute, { state: { email } });
-      } else {
-        setError("Signup failed. Please try again.");
+        setSuccess("Account created successfully! Redirecting to login...");
+        setTimeout(() => navigate("/login"), 2000);
       }
     } catch (err) {
       if (err.response) {
-        setError(err.response.data?.message || "An error occurred.");
+        setError(
+          err.response.data?.message || "Registration failed. Please try again."
+        );
+      } else if (err.request) {
+        setError("No response from server. Please try again later.");
       } else {
-        setError("Network error. Please try again.");
+        setError("An unexpected error occurred.");
       }
     } finally {
       setLoading(false);
@@ -86,7 +105,7 @@ const SignUp = () => {
         <div className="signup-form-box">
           <div className="glow-border"></div>
 
-          <h2>{isAdmin ? "Admin Sign Up" : "Create an account"}</h2>
+          <h2>{isAdmin ? "Admin Registration" : "Create an account"}</h2>
 
           <div className="logo-wrapper">
             <img src={logo} alt="logo" className="logo" />
@@ -99,6 +118,9 @@ const SignUp = () => {
             </span>
           </p>
 
+          {error && <div className="alert error">{error}</div>}
+          {success && <div className="alert success">{success}</div>}
+
           <form onSubmit={handleSubmit}>
             <div className="input-wrapper">
               <FaUser className="input-icon" />
@@ -110,6 +132,8 @@ const SignUp = () => {
                 onChange={handleChange}
                 className="sign-input"
                 required
+                minLength={3}
+                maxLength={20}
               />
             </div>
 
@@ -131,25 +155,26 @@ const SignUp = () => {
               <input
                 type="password"
                 name="password"
-                placeholder="Password"
+                placeholder="Password (min 6 characters)"
                 value={formData.password}
                 onChange={handleChange}
                 className="sign-input"
                 required
+                minLength={6}
               />
             </div>
 
             {isAdmin && (
               <div className="input-wrapper">
-                <FaLock className="input-icon" />
+                <FaShieldAlt className="input-icon" />
                 <input
-                  type="text"
+                  type="password"
                   name="adminCode"
-                  placeholder="Enter Admin Code"
+                  placeholder="Admin Registration Code"
                   value={formData.adminCode}
                   onChange={handleChange}
                   className="sign-input"
-                  required
+                  required={isAdmin}
                 />
               </div>
             )}
@@ -165,19 +190,24 @@ const SignUp = () => {
                 id="adminMode"
                 className="tick"
                 checked={isAdmin}
-                onChange={() => setIsAdmin(!isAdmin)}
+                onChange={handleAdminToggle}
               />
               <label htmlFor="adminMode">Register as Admin</label>
             </div>
 
-            {error && <p className="error">{error}</p>}
-
-            <button type="submit" className="signup-btn" disabled={loading}>
-              {loading
-                ? "Submitting..."
-                : isAdmin
-                ? "Register Admin"
-                : "Create account"}
+            <button
+              type="submit"
+              className="signup-btn"
+              disabled={loading}
+              aria-busy={loading}
+            >
+              {loading ? (
+                <span className="spinner"></span>
+              ) : isAdmin ? (
+                "Register Admin"
+              ) : (
+                "Create Account"
+              )}
             </button>
           </form>
         </div>

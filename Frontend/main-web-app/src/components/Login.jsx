@@ -43,12 +43,11 @@ const Login = () => {
       setLoading(false);
 
       if (response.ok) {
-        // Session is stored in cookies on the backend, no need to store user profile manually
-        // We will store user profile in sessionStorage or localStorage if required for immediate access
-        sessionStorage.setItem("userProfile", JSON.stringify(data.user));
+        // Store the necessary data in sessionStorage or localStorage
+        sessionStorage.setItem("isAdmin", JSON.stringify(data.isAdmin));
 
         // Redirect based on role
-        if (data.user.role === "admin") {
+        if (data.isAdmin) {
           navigate("/admin-dashboard"); // Redirect to admin dashboard
         } else {
           navigate("/home-page"); // Redirect to the home page for normal users

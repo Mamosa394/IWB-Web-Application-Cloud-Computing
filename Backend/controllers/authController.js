@@ -1,119 +1,107 @@
 import User from "../models/User.js";
-import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import { sendEmail } from "../utils/sendEmail.js";
 
-const ADMIN_CODE = "IWB-ADMIN-2024";
-const MAX_ADMINS = 3;
-
-export const signup = async (req, res) => {
-  try {
-    const { username, email, password, role, adminCode } = req.body;
-
-    if (!username || !email || !password) {
-      return res.status(400).json({ message: "All fields are required." });
-    }
-
-    if (role === "admin") {
-      const adminCount = await User.countDocuments({ role: "admin" });
-      if (adminCount >= MAX_ADMINS)
-        return res.status(403).json({ message: "Admin limit reached." });
-      if (adminCode !== ADMIN_CODE)
-        return res.status(401).json({ message: "Invalid admin code." });
-    }
-
-    const existing = await User.findOne({ email });
-    if (existing)
-      return res.status(409).json({ message: "Email already registered." });
-
-    const hashedPassword = await bcrypt.hash(password, 12);
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
-
-    const user = await User.create({
-      username,
-      email,
-      password: hashedPassword,
-      role: role || "user",
-      otp,
-      otpExpires: Date.now() + 10 * 60 * 1000, // 10 min
-    });
-
-    await sendEmail(email, "Your OTP Verification Code", `Your OTP is: ${otp}`);
-
-    res
-      .status(201)
-      .json({ message: "Signup successful. Check your email for OTP." });
-  } catch (error) {
-    res.status(500).json({ message: "Signup failed", error: error.message });
-  }
+// Helper function to create token
+const createToken = (userId, role) => {
+  return jwt.sign({ userId, role }, process.env.JWT_SECRET, {
+    expiresIn: "1d",
+  });
 };
 
-export const verifyOTP = async (req, res) => {
+// Signup controller
+export const signup = async (req, res) => {
+  const { username, email, password, role } = req.body;
+
   try {
-    const { email, otp } = req.body;
-    const user = await User.findOne({ email });
-
-    if (!user) {
-      return res.status(404).json({ message: "User not found." });
+    // Check if user exists
+    const existingUser = await User.findOne({ $or: [{ email }, { username }] });
+    if (existingUser) {
+      return res
+        .status(400)
+        .json({ message: "User already exists with this email or username" });
     }
 
-    // Check if OTP matches and is not expired
-    if (user.otp !== otp || user.otpExpires < Date.now()) {
-      return res.status(400).json({ message: "Invalid or expired OTP." });
+    // Verify admin code if registering as admin
+    if (role === "admin" && req.body.adminCode !== process.env.ADMIN_CODE) {
+      return res
+        .status(403)
+        .json({ message: "Invalid admin registration code" });
     }
 
-    user.isVerified = true;
-    user.otp = null;
-    user.otpExpires = null;
+    // Create new user
+    const user = new User({ username, email, password, role });
     await user.save();
 
-    res.status(200).json({ message: "OTP verified successfully." });
-  } catch (err) {
-    res
-      .status(500)
-      .json({ message: "OTP verification failed", error: err.message });
+    // Create token
+    const token = createToken(user._id, user.role);
+
+    // Set cookie
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: 24 * 60 * 60 * 1000, // 1 day
+    });
+
+    res.status(201).json({
+      message: "User created successfully",
+      user: {
+        id: user._id,
+        username: user.username,
+        email: user.email,
+        role: user.role,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
   }
 };
 
+// Login controller
 export const login = async (req, res) => {
+  const { email, password } = req.body;
+
   try {
-    const { email, password } = req.body;
+    // Find user by email
     const user = await User.findOne({ email });
-
     if (!user) {
-      return res.status(401).json({ message: "Invalid credentials." });
+      return res.status(401).json({ message: "Invalid credentials" });
     }
 
-    const isPasswordValid = await bcrypt.compare(password, user.password);
-    if (!isPasswordValid) {
-      return res.status(401).json({ message: "Invalid credentials." });
+    // Compare passwords
+    const isMatch = await user.comparePassword(password);
+    if (!isMatch) {
+      return res.status(401).json({ message: "Invalid credentials" });
     }
 
-    if (!user.isVerified) {
-      return res.status(403).json({
-        message: "Account not verified. Please verify OTP sent to email.",
-      });
-    }
+    // Create token
+    const token = createToken(user._id, user.role);
 
-    const token = jwt.sign(
-      { id: user._id, role: user.role },
-      process.env.JWT_SECRET,
-      {
-        expiresIn: "1d",
-      }
-    );
+    // Set cookie
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: 24 * 60 * 60 * 1000, // 1 day
+    });
 
-    res.status(200).json({ token, isAdmin: user.role === "admin" });
-  } catch (err) {
-    res.status(500).json({ message: "Login error", error: err.message });
+    res.status(200).json({
+      message: "Login successful",
+      user: {
+        id: user._id,
+        username: user.username,
+        email: user.email,
+        role: user.role,
+        isAdmin: user.role === "admin",
+      },
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
   }
 };
 
-export const getAdminCount = async (req, res) => {
-  try {
-    const count = await User.countDocuments({ role: "admin" });
-    res.json({ count });
-  } catch (err) {
-    res.status(500).json({ message: "Could not fetch admin count" });
-  }
+// Logout controller
+export const logout = (req, res) => {
+  res.clearCookie("token");
+  res.status(200).json({ message: "Logout successful" });
 };

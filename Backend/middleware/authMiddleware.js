@@ -1,9 +1,7 @@
 import User from "../models/User.js";
 import bcrypt from "bcryptjs";
-import { sendEmail } from "../utils/sendEmail.js";
 import session from "express-session";
 
-// Session configuration
 const MAX_ADMINS = 3;
 const ADMIN_CODE = "IWB-ADMIN-2024";
 
@@ -62,84 +60,51 @@ export const signup = async (req, res) => {
       return res.status(409).json({ message: "Email already registered." });
 
     const hashedPassword = await bcrypt.hash(password, 12);
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
     const user = await User.create({
       username,
       email,
       password: hashedPassword,
       role: role || "user",
-      otp,
-      otpExpires: Date.now() + 10 * 60 * 1000, // 10 min
+      // isVerified is removed here since you're not verifying users anymore
     });
 
-    await sendEmail(email, "Your OTP Verification Code", `Your OTP is: ${otp}`);
-
-    res
-      .status(201)
-      .json({ message: "Signup successful. Check your email for OTP." });
+    res.status(201).json({ message: "Signup successful. You can now log in." });
   } catch (error) {
     res.status(500).json({ message: "Signup failed", error: error.message });
   }
 };
 
-// OTP verification controller
-export const verifyOTP = async (req, res) => {
-  try {
-    const { email, otp } = req.body;
-    const user = await User.findOne({ email });
-
-    if (!user) {
-      return res.status(404).json({ message: "User not found." });
-    }
-
-    // Use instance method to check if OTP is expired
-    if (user.otp !== otp || user.isOtpExpired()) {
-      return res.status(400).json({ message: "Invalid or expired OTP." });
-    }
-
-    user.isVerified = true;
-    user.otp = null;
-    user.otpExpires = null;
-    await user.save();
-
-    res.status(200).json({ message: "OTP verified successfully." });
-  } catch (err) {
-    res
-      .status(500)
-      .json({ message: "OTP verification failed", error: err.message });
-  }
-};
-
-// Login controller (uses session-based authentication)
+// Login controller
 export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
     const user = await User.findOne({ email });
 
-    if (!user || !(await user.comparePassword(password))) {
+    if (!user || !(await bcrypt.compare(password, user.password))) {
       return res.status(401).json({ message: "Invalid credentials" });
     }
 
-    if (!user.isVerified) {
-      return res.status(403).json({
-        message: "Account not verified. Please verify OTP sent to email.",
-      });
-    }
+    // Remove verification logic here
+    // if (!user.isVerified) {
+    //   return res.status(403).json({
+    //     message: "Account not verified. Please contact support.",
+    //   });
+    // }
 
-    // Set session information for the logged-in user
     req.session.userId = user._id;
-    req.session.role = user.role; // Optionally store user role
+    req.session.role = user.role;
 
-    res
-      .status(200)
-      .json({ message: "Login successful", isAdmin: user.role === "admin" });
+    res.status(200).json({
+      message: "Login successful",
+      isAdmin: user.role === "admin",
+    });
   } catch (err) {
     res.status(500).json({ message: "Login error", error: err.message });
   }
 };
 
-// Logout controller (clears session)
+// Logout controller
 export const logout = (req, res) => {
   req.session.destroy((err) => {
     if (err) {

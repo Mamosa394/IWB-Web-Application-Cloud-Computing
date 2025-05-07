@@ -4,9 +4,8 @@ import dotenv from "dotenv";
 import cors from "cors";
 import helmet from "helmet";
 import session from "express-session";
-import MongoStore from "connect-mongo"; // Store sessions in MongoDB
-import authRoutes from "./routes/authRoutes.js"; // Updated auth routes
-import otpRoutes from "./routes/otpRoutes.js"; // Updated OTP routes
+import MongoStore from "connect-mongo";
+import authRoutes from "./routes/authRoutes.js";
 
 dotenv.config();
 
@@ -16,46 +15,68 @@ const PORT = process.env.PORT || 5000;
 // Middleware
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: process.env.REACT_APP_API_URL || "http://localhost:5173",
     credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
 
-app.use(helmet());
+app.use(
+  helmet({
+    contentSecurityPolicy: false, // Disable if not serving HTML
+    crossOriginResourcePolicy: { policy: "cross-origin" },
+  })
+);
+
 app.use(express.json());
 
-// Session middleware configuration
+// Session Configuration
 app.use(
   session({
-    secret: process.env.SESSION_SECRET || "your-random-secret", // Use a secret key for session encryption
+    secret: process.env.JWT_SECRET,
     resave: false,
     saveUninitialized: false,
-    cookie: {
-      secure: process.env.NODE_ENV === "production", // Set to true for HTTPS
-      httpOnly: true, // Helps to prevent XSS attacks
-      maxAge: 1000 * 60 * 60, // Session expiration time (1 hour)
-    },
     store: MongoStore.create({
-      mongoUrl: process.env.MONGO_URI, // MongoDB connection string
-      collectionName: "sessions", // Store sessions in the "sessions" collection
+      mongoUrl: process.env.MONGO_URI,
+      ttl: 14 * 24 * 60 * 60, // 14 days
     }),
+    cookie: {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+      maxAge: 1000 * 60 * 60 * 24, // 1 day
+    },
   })
 );
 
 // MongoDB Connection
-mongoose
-  .connect(process.env.MONGO_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  })
-  .then(() => console.log("✅ MongoDB connected"))
-  .catch((err) => console.error("❌ MongoDB connection error:", err));
+const connectDB = async () => {
+  try {
+    await mongoose.connect(process.env.MONGO_URI);
+    console.log("✅ MongoDB connected");
+  } catch (err) {
+    console.error("❌ MongoDB connection error:", err);
+    process.exit(1);
+  }
+};
 
 // Routes
 app.use("/api/auth", authRoutes);
-app.use("/api/otp", otpRoutes); // New OTP route
+
+// Error Handling Middleware
+app.use((err, req, res, next) => {
+  console.error("🔥 Server error:", err);
+  res.status(500).json({
+    success: false,
+    message: "Internal server error",
+    error: process.env.NODE_ENV === "development" ? err.message : undefined,
+  });
+});
 
 // Start server
-app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
+connectDB().then(() => {
+  app.listen(PORT, () => {
+    console.log(`🚀 Server running on port ${PORT}`);
+  });
 });
