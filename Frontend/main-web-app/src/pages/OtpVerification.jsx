@@ -1,32 +1,31 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import axios from "axios";
 import "../styles/OtpVerification.css";
 
 const OTPVerification = () => {
   const [otp, setOtp] = useState(new Array(6).fill(""));
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   const email = location.state?.email;
 
-  useEffect(() => {
-    if (!email) {
-      navigate("/signup");
-    }
-  }, [email, navigate]);
+  if (!email) {
+    return (
+      <p className="otp-error">Email not provided. Please sign up again.</p>
+    );
+  }
 
   const handleChange = (element, index) => {
-    const value = element.value.replace(/\D/g, "");
+    const value = element.value.replace(/\D/g, ""); // Only digits
 
-    if (value.length === 1) {
+    if (value.length <= 1) {
       const newOtp = [...otp];
       newOtp[index] = value;
       setOtp(newOtp);
 
-      if (element.nextSibling) {
+      // Move focus to the next input
+      if (value.length === 1 && element.nextSibling) {
         element.nextSibling.focus();
       }
     }
@@ -42,28 +41,32 @@ const OTPVerification = () => {
       return;
     }
 
-    setLoading(true);
-    setError("");
-    setSuccess("");
-
     try {
-      // Send OTP verification to backend API
-      const response = await axios.post(
-        "http://localhost:5000/api/auth/verify-otp", // Adjust the backend URL as needed
+      const response = await fetch(
+        "http://localhost:5000/api/auth/verify-otp",
         {
-          email,
-          otp: enteredOTP,
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ email, otp: enteredOTP }),
+          credentials: "include", // Ensure the session cookie is sent with the request
         }
       );
 
-      if (response.status === 200) {
-        setSuccess("OTP verified successfully! Redirecting...");
+      const data = await response.json();
+
+      if (response.ok) {
+        setSuccess("OTP verified successfully!");
+        setError("");
         setTimeout(() => navigate("/login"), 2000);
+      } else {
+        setError(data.message || "Invalid OTP.");
+        setSuccess("");
       }
     } catch (err) {
-      setError(err.response?.data?.message || "OTP verification failed.");
-    } finally {
-      setLoading(false);
+      setError("Server error. Please try again later.");
+      setSuccess("");
     }
   };
 
@@ -93,8 +96,8 @@ const OTPVerification = () => {
           {error && <p className="otp-error">{error}</p>}
           {success && <p className="otp-success">{success}</p>}
 
-          <button type="submit" className="otp-verify-btn" disabled={loading}>
-            {loading ? "Verifying..." : "Verify & Proceed"}
+          <button type="submit" className="otp-verify-btn">
+            Verify & Proceed
           </button>
         </form>
       </div>

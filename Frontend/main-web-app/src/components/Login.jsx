@@ -36,17 +36,18 @@ const Login = () => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ email, password }),
+        credentials: "include", // Allow the cookie/session to be included in the request
       });
 
       const data = await response.json();
       setLoading(false);
 
       if (response.ok) {
-        // Store user profile in session (you can store it in localStorage, sessionStorage, or context)
-        sessionStorage.setItem("userProfile", JSON.stringify(data.user));
+        // Store the necessary data in sessionStorage or localStorage
+        sessionStorage.setItem("isAdmin", JSON.stringify(data.isAdmin));
 
-        // Redirect to the correct dashboard
-        if (data.user.role === "admin") {
+        // Redirect based on role
+        if (data.isAdmin) {
           navigate("/admin-dashboard"); // Redirect to admin dashboard
         } else {
           navigate("/home-page"); // Redirect to the home page for normal users

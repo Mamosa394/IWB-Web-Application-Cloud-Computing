@@ -1,106 +1,79 @@
 import User from "../models/User.js";
 import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
 
-// Signup Controller
+const ADMIN_CODE = "IWB-ADMIN-2024";
+const MAX_ADMINS = 3;
+
 export const signup = async (req, res) => {
-  const { username, email, password, role, adminCode } = req.body;
-
   try {
-    // Check if email already exists
-    const userExists = await User.findOne({ email });
-    if (userExists) {
-      return res.status(400).json({ message: "Email already exists" });
+    const { username, email, password, role, adminCode } = req.body;
+
+    if (!username || !email || !password) {
+      return res.status(400).json({ message: "All fields are required." });
     }
 
-    // Check if it's an admin signup and validate the admin code
-    if (role === "admin" && adminCode !== "IWB-ADMIN-2024") {
-      return res.status(401).json({ message: "Invalid admin code" });
+    if (role === "admin") {
+      const adminCount = await User.countDocuments({ role: "admin" });
+      if (adminCount >= MAX_ADMINS)
+        return res.status(403).json({ message: "Admin limit reached." });
+      if (adminCode !== ADMIN_CODE)
+        return res.status(401).json({ message: "Invalid admin code." });
     }
 
-    // Hash the password before saving
+    const existing = await User.findOne({ email });
+    if (existing)
+      return res.status(409).json({ message: "Email already registered." });
+
     const hashedPassword = await bcrypt.hash(password, 12);
 
-    const user = new User({
+    const user = await User.create({
       username,
       email,
       password: hashedPassword,
-      role: role || "user", // If no role, default to 'user'
+      role: role || "user",
+      // Removed isVerified property
     });
 
-    await user.save();
-
-    // Send back the user data and the redirection path based on the role
-    const userData = {
-      id: user._id,
-      username: user.username,
-      email: user.email,
-      role: user.role,
-    };
-
-    if (user.role === "admin") {
-      res.json({
-        message: "Admin created successfully",
-        user: userData,
-        redirectTo: "/admin-dashboard", // Redirect to admin dashboard
-      });
-    } else {
-      res.json({
-        message: "User created successfully",
-        user: userData,
-        redirectTo: "/home-page", // Redirect to home page for regular users
-      });
-    }
-  } catch (err) {
-    console.error("Error during signup:", err);
-    res.status(500).json({ message: "Server error" });
+    res.status(201).json({ message: "Signup successful. You can now log in." });
+  } catch (error) {
+    res.status(500).json({ message: "Signup failed", error: error.message });
   }
 };
 
-// Login Controller
 export const login = async (req, res) => {
-  const { email, password } = req.body;
-
   try {
+    const { email, password } = req.body;
     const user = await User.findOne({ email });
+
     if (!user) {
-      return res.status(401).json({ message: "Invalid email or password" });
+      return res.status(401).json({ message: "Invalid credentials." });
     }
 
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-      return res.status(401).json({ message: "Invalid email or password" });
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) {
+      return res.status(401).json({ message: "Invalid credentials." });
     }
 
-    // Check if the user is verified (optional, for now we'll skip)
-    if (!user.isVerified) {
-      return res.status(401).json({ message: "User is not verified" });
-    }
+    // Removed verification check (isVerified field)
 
-    // Store session userId (assuming session is used)
-    req.session.userId = user._id;
+    const token = jwt.sign(
+      { id: user._id, role: user.role },
+      process.env.JWT_SECRET,
+      { expiresIn: "1d" }
+    );
 
-    const userData = {
-      id: user._id,
-      username: user.username,
-      email: user.email,
-      role: user.role, // Send the role (user/admin)
-    };
-
-    if (user.role === "admin") {
-      res.json({
-        message: "Logged in successfully",
-        user: userData,
-        redirectTo: "/admin-dashboard", // Admin is redirected to admin dashboard
-      });
-    } else {
-      res.json({
-        message: "Logged in successfully",
-        user: userData,
-        redirectTo: "/home-page", // Regular user is redirected to home page
-      });
-    }
+    res.status(200).json({ token, isAdmin: user.role === "admin" });
   } catch (err) {
-    console.error("Error during login:", err);
-    res.status(500).json({ message: "Server error" });
+    res.status(500).json({ message: "Login error", error: err.message });
+  }
+};
+
+export const getAdminCount = async (req, res) => {
+  try {
+    const count = await User.countDocuments({ role: "admin" });
+    res.json({ count });
+  } catch (err) {
+    res.status(500).json({ message: "Could not fetch admin count" });
   }
 };

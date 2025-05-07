@@ -1,60 +1,50 @@
 import User from "../models/User.js";
-import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
 
-// Signup Controller
-export const signup = async (req, res) => {
-  const { username, email, password, role, adminCode } = req.body;
-
-  try {
-    const userExists = await User.findOne({ email });
-    if (userExists) {
-      return res.status(400).json({ message: "Email already exists" });
-    }
-
-    let finalRole = "user";
-
-    if (role === "admin") {
-      if (adminCode !== "IWB-ADMIN-2024") {
-        return res.status(401).json({ message: "Invalid admin code" });
-      }
-      finalRole = "admin";
-    }
-
-    const user = new User({
-      username,
-      email,
-      password,
-      role: finalRole,
-    });
-
-    await user.save();
-    console.log("User saved:", user); // DEBUG LOG
-    res.status(201).json({ message: "User created successfully" });
-  } catch (err) {
-    console.error("Signup error:", err); // DEBUG LOG
-    res.status(500).json({ message: "Server error" });
-  }
+// Helper function to create token
+const createToken = (userId, role) => {
+  return jwt.sign({ userId, role }, process.env.JWT_SECRET, {
+    expiresIn: "1d",
+  });
 };
 
-// Login Controller
-export const login = async (req, res) => {
-  const { email, password } = req.body;
+// Signup controller
+export const signup = async (req, res) => {
+  const { username, email, password, role } = req.body;
 
   try {
-    const user = await User.findOne({ email });
-
-    if (!user) {
-      return res.status(401).json({ message: "Invalid email or password" });
+    // Check if user exists
+    const existingUser = await User.findOne({ $or: [{ email }, { username }] });
+    if (existingUser) {
+      return res
+        .status(400)
+        .json({ message: "User already exists with this email or username" });
     }
 
-    const isMatch = await bcrypt.compare(password, user.password);
-
-    if (!isMatch) {
-      return res.status(401).json({ message: "Invalid email or password" });
+    // Verify admin code if registering as admin
+    if (role === "admin" && req.body.adminCode !== process.env.ADMIN_CODE) {
+      return res
+        .status(403)
+        .json({ message: "Invalid admin registration code" });
     }
 
-    res.json({
-      message: "Logged in successfully",
+    // Create new user
+    const user = new User({ username, email, password, role });
+    await user.save();
+
+    // Create token
+    const token = createToken(user._id, user.role);
+
+    // Set cookie
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: 24 * 60 * 60 * 1000, // 1 day
+    });
+
+    res.status(201).json({
+      message: "User created successfully",
       user: {
         id: user._id,
         username: user.username,
@@ -62,19 +52,56 @@ export const login = async (req, res) => {
         role: user.role,
       },
     });
-  } catch (err) {
-    console.error("Login error:", err);
-    res.status(500).json({ message: "Server error" });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
   }
 };
 
-// Admin count controller
-export const getAdminCount = async (req, res) => {
+// Login controller
+export const login = async (req, res) => {
+  const { email, password } = req.body;
+
   try {
-    const adminCount = await User.countDocuments({ role: "admin" });
-    res.json({ adminCount });
-  } catch (err) {
-    console.error("Error fetching admin count:", err);
-    res.status(500).json({ message: "Server error" });
+    // Find user by email
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(401).json({ message: "Invalid credentials" });
+    }
+
+    // Compare passwords
+    const isMatch = await user.comparePassword(password);
+    if (!isMatch) {
+      return res.status(401).json({ message: "Invalid credentials" });
+    }
+
+    // Create token
+    const token = createToken(user._id, user.role);
+
+    // Set cookie
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: 24 * 60 * 60 * 1000, // 1 day
+    });
+
+    res.status(200).json({
+      message: "Login successful",
+      user: {
+        id: user._id,
+        username: user.username,
+        email: user.email,
+        role: user.role,
+        isAdmin: user.role === "admin",
+      },
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
   }
+};
+
+// Logout controller
+export const logout = (req, res) => {
+  res.clearCookie("token");
+  res.status(200).json({ message: "Logout successful" });
 };

@@ -27,17 +27,13 @@ const userSchema = new mongoose.Schema(
     },
     isVerified: {
       type: Boolean,
-      default: false,
-    },
-    otp: {
-      code: { type: String },
-      expiresAt: { type: Date },
+      default: true, // set to true by default since OTP is removed
     },
   },
   { timestamps: true }
 );
 
-// Hash password before saving
+// Middleware to hash the password before saving the user
 userSchema.pre("save", async function (next) {
   if (!this.isModified("password")) return next();
 
@@ -50,13 +46,9 @@ userSchema.pre("save", async function (next) {
   }
 });
 
-// Compare entered password with hashed password
+// Instance method to compare passwords
 userSchema.methods.comparePassword = async function (password) {
-  try {
-    return await bcrypt.compare(password, this.password);
-  } catch (err) {
-    throw new Error("Error comparing password");
-  }
+  return bcrypt.compare(password, this.password);
 };
 
 const User = mongoose.model("User", userSchema);

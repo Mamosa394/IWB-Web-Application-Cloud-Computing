@@ -1,12 +1,11 @@
 import mongoose from "mongoose";
 
-// Define OTP schema
 const otpSchema = new mongoose.Schema(
   {
     email: {
       type: String,
       required: true,
-      unique: true, // Ensure each email has only one OTP record at a time
+      unique: true,
     },
     otp: {
       type: String,
@@ -15,13 +14,14 @@ const otpSchema = new mongoose.Schema(
     expiresAt: {
       type: Date,
       required: true,
+      expires: 0, // TTL: expires exactly at this timestamp
     },
     verified: {
       type: Boolean,
-      default: false, // To mark whether OTP has been verified
+      default: false,
     },
   },
-  { timestamps: true } // Automatically tracks when the OTP was created
+  { timestamps: true }
 );
 
 export default mongoose.model("Otp", otpSchema);
