@@ -61,16 +61,17 @@
 .query-form input,
 .query-form textarea {
   width: 90%;
-  padding: 0.5rem 4rem;
+  padding: 5rem 4rem;
   margin-top: 20px;
-  margin-right: 100px;
+  margin-right: auto;
   margin-bottom: 10px;
   border: none;
   border-radius: 6px;
   background-color: var(--input-bg);
   color: var(--white);
   padding: 20px;
-  border: none;
+  margin-left:auto;
+
 }
 
 .queryinput::placeholder {
