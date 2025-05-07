@@ -15,6 +15,7 @@ const SignUp = () => {
   });
   const [isAdmin, setIsAdmin] = useState(false);
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -24,15 +25,20 @@ const SignUp = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError("");
+    setLoading(true);
+
     const { username, email, password, adminCode } = formData;
 
     if (!username || !email || !password) {
       setError("All fields are required.");
+      setLoading(false);
       return;
     }
 
     if (isAdmin && adminCode !== "IWB-ADMIN-2024") {
       setError("Invalid admin code.");
+      setLoading(false);
       return;
     }
 
@@ -44,29 +50,26 @@ const SignUp = () => {
       ...(isAdmin && { adminCode }),
     };
 
-    console.log("Sending signup payload:", payload);
-
     try {
       const response = await axios.post(
         "http://localhost:5000/api/auth/signup",
         payload
       );
 
-      console.log("Signup response:", response);
-
       if (response.status === 201) {
-        navigate("/otp", { state: { email } });
+        const otpRoute = isAdmin ? "/otp/admin" : "/otp";
+        navigate(otpRoute, { state: { email } });
       } else {
         setError("Signup failed. Please try again.");
       }
     } catch (err) {
-      console.error("Signup error:", err);
-
       if (err.response) {
         setError(err.response.data?.message || "An error occurred.");
       } else {
         setError("Network error. Please try again.");
       }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -169,8 +172,12 @@ const SignUp = () => {
 
             {error && <p className="error">{error}</p>}
 
-            <button type="submit" className="signup-btn">
-              {isAdmin ? "Register Admin" : "Create account"}
+            <button type="submit" className="signup-btn" disabled={loading}>
+              {loading
+                ? "Submitting..."
+                : isAdmin
+                ? "Register Admin"
+                : "Create account"}
             </button>
           </form>
         </div>

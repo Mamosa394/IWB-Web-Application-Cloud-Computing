@@ -1,22 +1,22 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import axios from "axios";
 import "../styles/OtpVerification.css";
 
 const OTPVerification = () => {
   const [otp, setOtp] = useState(new Array(6).fill(""));
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
-  const email = location.state?.email || "user@example.com";
+  const email = location.state?.email;
 
-  // Auto-fill dummy OTP on mount
   useEffect(() => {
-    const randomOtp = Array.from({ length: 6 }, () =>
-      Math.floor(Math.random() * 10).toString()
-    );
-    setOtp(randomOtp);
-  }, []);
+    if (!email) {
+      navigate("/signup");
+    }
+  }, [email, navigate]);
 
   const handleChange = (element, index) => {
     const value = element.value.replace(/\D/g, "");
@@ -32,7 +32,7 @@ const OTPVerification = () => {
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const enteredOTP = otp.join("");
 
@@ -42,10 +42,29 @@ const OTPVerification = () => {
       return;
     }
 
-    // Dummy success
-    setSuccess("OTP accepted . Redirecting...");
+    setLoading(true);
     setError("");
-    setTimeout(() => navigate("/login"), 2000);
+    setSuccess("");
+
+    try {
+      // Send OTP verification to backend API
+      const response = await axios.post(
+        "http://localhost:5000/api/auth/verify-otp", // Adjust the backend URL as needed
+        {
+          email,
+          otp: enteredOTP,
+        }
+      );
+
+      if (response.status === 200) {
+        setSuccess("OTP verified successfully! Redirecting...");
+        setTimeout(() => navigate("/login"), 2000);
+      }
+    } catch (err) {
+      setError(err.response?.data?.message || "OTP verification failed.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -74,8 +93,8 @@ const OTPVerification = () => {
           {error && <p className="otp-error">{error}</p>}
           {success && <p className="otp-success">{success}</p>}
 
-          <button type="submit" className="otp-verify-btn">
-            Verify & Proceed
+          <button type="submit" className="otp-verify-btn" disabled={loading}>
+            {loading ? "Verifying..." : "Verify & Proceed"}
           </button>
         </form>
       </div>

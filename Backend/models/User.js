@@ -25,10 +25,19 @@ const userSchema = new mongoose.Schema(
       enum: ["user", "admin"],
       default: "user",
     },
+    isVerified: {
+      type: Boolean,
+      default: false,
+    },
+    otp: {
+      code: { type: String },
+      expiresAt: { type: Date },
+    },
   },
   { timestamps: true }
 );
 
+// Hash password before saving
 userSchema.pre("save", async function (next) {
   if (!this.isModified("password")) return next();
 
@@ -41,6 +50,7 @@ userSchema.pre("save", async function (next) {
   }
 });
 
+// Compare entered password with hashed password
 userSchema.methods.comparePassword = async function (password) {
   try {
     return await bcrypt.compare(password, this.password);
@@ -48,7 +58,6 @@ userSchema.methods.comparePassword = async function (password) {
     throw new Error("Error comparing password");
   }
 };
-console.log("Saving user with role:", this.role);
 
 const User = mongoose.model("User", userSchema);
 export default User;
