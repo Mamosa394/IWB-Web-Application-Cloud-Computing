@@ -5,6 +5,7 @@ import cors from "cors";
 import helmet from "helmet";
 import authRoutes from "./routes/authRoutes.js"; // Updated auth routes
 import otpRoutes from "./routes/otpRoutes.js"; // Updated OTP routes
+import queryRoutes from "./routes/queryRoutes.js";
 
 dotenv.config();
 
@@ -28,6 +29,7 @@ mongoose.connect("mongodb+srv://tlouthabo07:tlouthabo@employment.sg91j.mongodb.n
 // Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/otp", otpRoutes); // New OTP route
+app.use("/api/client-queries", queryRoutes);
 
 // Start server
 app.listen(PORT, () => {
