@@ -1,6 +1,7 @@
 import "../styles/querylist.css";
 import { useEffect, useState } from 'react';
 import axios from 'axios';
+import Header from '../components/Header';
 
 const QueryList = () => {
   const [queries, setQueries] = useState([]);
@@ -39,6 +40,8 @@ const QueryList = () => {
 
   return (
     <div className="query-list">
+      <Header />
+
       <h2 className="heading">Client Queries</h2>
       <button onClick={() => setEditMode(!editMode)} className="toggle-btn">
         Toggle {editMode ? 'Read-Only' : 'Edit'} Mode

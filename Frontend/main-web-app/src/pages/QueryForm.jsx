@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react'; 
+import { useState, useEffect } from 'react';
 import { Bar } from 'react-chartjs-2';
 import { Chart as ChartJS, BarElement, CategoryScale, LinearScale, Tooltip, Legend } from 'chart.js';
-import '../styles/query.css'; 
+import '../styles/query.css';
+import Header from '../components/Header';
 
 ChartJS.register(BarElement, CategoryScale, LinearScale, Tooltip, Legend);
 
@@ -53,7 +54,6 @@ const QueryForm = () => {
   const countByStatus = (status) =>
     queries.filter((query) => query.status === status).length;
 
-
   const chartData = {
     labels: ["Pending", "Complete"],
     datasets: [
@@ -77,41 +77,44 @@ const QueryForm = () => {
 
   return (
     <div className="query-container">
-      <h2 className="query-title">Client Support</h2>
-      
-      <form onSubmit={handleSubmit} className="query-form">
-        <input
-          className="form-input"
-          type="text"
-          placeholder="Name"
-          value={formData.name}
-          required
-          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-        />
-        <input
-          className="form-input"
-          type="email"
-          placeholder="Email"
-          value={formData.email}
-          required
-          onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-        />
-        <textarea
-          className="form-textarea"
-          placeholder="Please enter your query"
-          value={formData.message}
-          required
-          onChange={(e) =>
-            setFormData({ ...formData, message: e.target.value })
-          }
-        />
-        <button type="submit" className="form-button">Submit</button>
-        <p className="status-message">{statusMessage}</p>
-      </form>
+      <Header />
 
-      <h3 className="query-subtitle">Query Statistics</h3>
-      <div className="chart-container">
-        <Bar data={chartData} />
+      <h2 className="query-title">Client Support</h2>
+
+      <div className="query-form-chart">
+        <form onSubmit={handleSubmit} className="query-form">
+          <input
+            className="form-input"
+            type="text"
+            placeholder="Name"
+            value={formData.name}
+            required
+            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+          />
+          <input
+            className="form-input"
+            type="email"
+            placeholder="Email"
+            value={formData.email}
+            required
+            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+          />
+          <textarea
+            className="form-textarea"
+            placeholder="Please enter your query"
+            value={formData.message}
+            required
+            onChange={(e) =>
+              setFormData({ ...formData, message: e.target.value })
+            }
+          />
+          <button type="submit" className="form-button">Submit</button>
+          <p className="status-message">{statusMessage}</p>
+        </form>
+
+        <div className="chart-container">
+          <Bar data={chartData} />
+        </div>
       </div>
 
       <h3 className="query-subtitle">Query List</h3>
@@ -124,7 +127,6 @@ const QueryForm = () => {
               <th>Status</th>
               <th>Message</th>
               <th>Auto-Reply</th>
-              
             </tr>
           </thead>
           <tbody>
