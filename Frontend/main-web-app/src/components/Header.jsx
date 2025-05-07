@@ -18,6 +18,7 @@ const Header = () => {
       <nav className="nav-center">
         <Link to="/home-page">Home</Link>
         <Link to="/inventory">Inventory</Link>
+        <Link to="/investors-space">Inverstors Space</Link>
         <Link to="/about">About</Link>
         <Link to="/contact">Contact</Link>
       </nav>

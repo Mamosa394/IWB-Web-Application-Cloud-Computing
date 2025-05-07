@@ -41,10 +41,12 @@ const Inventory = () => {
     alert(`Edit form for ID ${id} (admin only)!`);
   };
 
+  const handleBuy = (item) => {
+    alert(`You bought ${item.name} for M ${item.price}!`);
+  };
+
   const matchesSearch = (item) => {
-    const text = `${item.name} ${item.specs.cpu} ${
-      item.specs.gpu
-    } ${item.tags.join(" ")}`.toLowerCase();
+    const text = `${item.name} ${item.specs.cpu} ${item.specs.gpu} ${item.tags.join(" ")}`.toLowerCase();
     return text.includes(search.toLowerCase());
   };
 
@@ -143,11 +145,12 @@ const Inventory = () => {
                 {isAdmin && (
                   <>
                     <button onClick={() => handleEdit(item._id)}>Edit</button>
-                    <button onClick={() => handleDelete(item._id)}>
-                      Delete
-                    </button>
+                    <button onClick={() => handleDelete(item._id)}>Delete</button>
                   </>
                 )}
+                <div className="buy-button" onClick={() => handleBuy(item)}>
+                  Buy
+                </div>
               </div>
             </div>
           </div>
