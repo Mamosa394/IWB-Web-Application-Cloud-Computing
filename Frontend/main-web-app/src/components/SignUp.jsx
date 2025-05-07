@@ -53,10 +53,10 @@ const SignUp = () => {
     try {
       const response = await axios.post(
         "http://localhost:5000/api/auth/signup",
-        payload
+        payload,
+        { withCredentials: true } // Send cookies along with the request
       );
-
-      if (response.status === 201) {
+      if (response.status === 200 || response.status === 201) {
         const otpRoute = isAdmin ? "/otp/admin" : "/otp";
         navigate(otpRoute, { state: { email } });
       } else {

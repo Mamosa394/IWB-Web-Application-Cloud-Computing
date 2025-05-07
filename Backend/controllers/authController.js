@@ -1,80 +1,119 @@
 import User from "../models/User.js";
 import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
+import { sendEmail } from "../utils/sendEmail.js";
 
-// Signup Controller
+const ADMIN_CODE = "IWB-ADMIN-2024";
+const MAX_ADMINS = 3;
+
 export const signup = async (req, res) => {
-  const { username, email, password, role, adminCode } = req.body;
-
   try {
-    const userExists = await User.findOne({ email });
-    if (userExists) {
-      return res.status(400).json({ message: "Email already exists" });
-    }
+    const { username, email, password, role, adminCode } = req.body;
 
-    let finalRole = "user";
+    if (!username || !email || !password) {
+      return res.status(400).json({ message: "All fields are required." });
+    }
 
     if (role === "admin") {
-      if (adminCode !== "IWB-ADMIN-2024") {
-        return res.status(401).json({ message: "Invalid admin code" });
-      }
-      finalRole = "admin";
+      const adminCount = await User.countDocuments({ role: "admin" });
+      if (adminCount >= MAX_ADMINS)
+        return res.status(403).json({ message: "Admin limit reached." });
+      if (adminCode !== ADMIN_CODE)
+        return res.status(401).json({ message: "Invalid admin code." });
     }
 
-    const user = new User({
+    const existing = await User.findOne({ email });
+    if (existing)
+      return res.status(409).json({ message: "Email already registered." });
+
+    const hashedPassword = await bcrypt.hash(password, 12);
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
+    const user = await User.create({
       username,
       email,
-      password,
-      role: finalRole,
+      password: hashedPassword,
+      role: role || "user",
+      otp,
+      otpExpires: Date.now() + 10 * 60 * 1000, // 10 min
     });
 
-    await user.save();
-    console.log("User saved:", user); // DEBUG LOG
-    res.status(201).json({ message: "User created successfully" });
-  } catch (err) {
-    console.error("Signup error:", err); // DEBUG LOG
-    res.status(500).json({ message: "Server error" });
+    await sendEmail(email, "Your OTP Verification Code", `Your OTP is: ${otp}`);
+
+    res
+      .status(201)
+      .json({ message: "Signup successful. Check your email for OTP." });
+  } catch (error) {
+    res.status(500).json({ message: "Signup failed", error: error.message });
   }
 };
 
-// Login Controller
-export const login = async (req, res) => {
-  const { email, password } = req.body;
-
+export const verifyOTP = async (req, res) => {
   try {
+    const { email, otp } = req.body;
     const user = await User.findOne({ email });
 
     if (!user) {
-      return res.status(401).json({ message: "Invalid email or password" });
+      return res.status(404).json({ message: "User not found." });
     }
 
-    const isMatch = await bcrypt.compare(password, user.password);
-
-    if (!isMatch) {
-      return res.status(401).json({ message: "Invalid email or password" });
+    // Check if OTP matches and is not expired
+    if (user.otp !== otp || user.otpExpires < Date.now()) {
+      return res.status(400).json({ message: "Invalid or expired OTP." });
     }
 
-    res.json({
-      message: "Logged in successfully",
-      user: {
-        id: user._id,
-        username: user.username,
-        email: user.email,
-        role: user.role,
-      },
-    });
+    user.isVerified = true;
+    user.otp = null;
+    user.otpExpires = null;
+    await user.save();
+
+    res.status(200).json({ message: "OTP verified successfully." });
   } catch (err) {
-    console.error("Login error:", err);
-    res.status(500).json({ message: "Server error" });
+    res
+      .status(500)
+      .json({ message: "OTP verification failed", error: err.message });
   }
 };
 
-// Admin count controller
+export const login = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return res.status(401).json({ message: "Invalid credentials." });
+    }
+
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) {
+      return res.status(401).json({ message: "Invalid credentials." });
+    }
+
+    if (!user.isVerified) {
+      return res.status(403).json({
+        message: "Account not verified. Please verify OTP sent to email.",
+      });
+    }
+
+    const token = jwt.sign(
+      { id: user._id, role: user.role },
+      process.env.JWT_SECRET,
+      {
+        expiresIn: "1d",
+      }
+    );
+
+    res.status(200).json({ token, isAdmin: user.role === "admin" });
+  } catch (err) {
+    res.status(500).json({ message: "Login error", error: err.message });
+  }
+};
+
 export const getAdminCount = async (req, res) => {
   try {
-    const adminCount = await User.countDocuments({ role: "admin" });
-    res.json({ adminCount });
+    const count = await User.countDocuments({ role: "admin" });
+    res.json({ count });
   } catch (err) {
-    console.error("Error fetching admin count:", err);
-    res.status(500).json({ message: "Server error" });
+    res.status(500).json({ message: "Could not fetch admin count" });
   }
 };

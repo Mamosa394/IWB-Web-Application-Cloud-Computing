@@ -1,43 +1,160 @@
-import express from "express";
-import { signup, login, getAdminCount } from "../controllers/authController.js";
-import User from "../models/User.js"; // Add this if you need to query User
+import User from "../models/User.js";
+import bcrypt from "bcryptjs";
+import { sendEmail } from "../utils/sendEmail.js";
+import session from "express-session";
 
-const router = express.Router();
+// Session configuration
+const MAX_ADMINS = 3;
+const ADMIN_CODE = "IWB-ADMIN-2024";
 
-// Route to sign up a user
-router.post("/signup", signup);
+// Middleware to protect routes by checking session
+export const protect = async (req, res, next) => {
+  if (req.session && req.session.userId) {
+    try {
+      const user = await User.findById(req.session.userId);
 
-// Route to login a user
-router.post("/login", login);
+      if (!user) {
+        return res.status(401).json({ message: "User not found" });
+      }
 
-// Route to get the count of admins (No authentication required for this)
-router.get("/admin-count", getAdminCount);
-
-// Route to get logged-in user's profile (Removed authentication, no `req.user`)
-router.get("/profile", async (req, res) => {
-  try {
-    // We don't have `req.user` anymore, so just querying the user by ID (if provided in query)
-    const userId = req.query.userId; // Assuming you pass `userId` in query params
-
-    if (!userId) {
-      return res.status(400).json({ message: "User ID is required" });
+      req.user = user;
+      next();
+    } catch (err) {
+      return res
+        .status(401)
+        .json({ message: "Not authorized, session failed" });
     }
-
-    const user = await User.findById(userId).select("-password");
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
-    res.json(user);
-  } catch (err) {
-    res.status(500).json({ message: "Server error" });
+  } else {
+    return res
+      .status(401)
+      .json({ message: "No session, authorization denied" });
   }
-});
+};
 
-// Admin-only route to access the admin dashboard (No authentication required)
-router.get("/admin-dashboard", (req, res) => {
-  res.status(200).json({
-    message: "Welcome to the admin dashboard!",
+// Middleware to check if the user is an admin
+export const adminOnly = (req, res, next) => {
+  if (req.user && req.user.role === "admin") {
+    return next();
+  } else {
+    return res.status(403).json({ message: "Access denied, admin only" });
+  }
+};
+
+// Signup controller
+export const signup = async (req, res) => {
+  try {
+    const { username, email, password, role, adminCode } = req.body;
+
+    if (!username || !email || !password) {
+      return res.status(400).json({ message: "All fields are required." });
+    }
+
+    if (role === "admin") {
+      const adminCount = await User.countDocuments({ role: "admin" });
+      if (adminCount >= MAX_ADMINS)
+        return res.status(403).json({ message: "Admin limit reached." });
+      if (adminCode !== ADMIN_CODE)
+        return res.status(401).json({ message: "Invalid admin code." });
+    }
+
+    const existing = await User.findOne({ email });
+    if (existing)
+      return res.status(409).json({ message: "Email already registered." });
+
+    const hashedPassword = await bcrypt.hash(password, 12);
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
+    const user = await User.create({
+      username,
+      email,
+      password: hashedPassword,
+      role: role || "user",
+      otp,
+      otpExpires: Date.now() + 10 * 60 * 1000, // 10 min
+    });
+
+    await sendEmail(email, "Your OTP Verification Code", `Your OTP is: ${otp}`);
+
+    res
+      .status(201)
+      .json({ message: "Signup successful. Check your email for OTP." });
+  } catch (error) {
+    res.status(500).json({ message: "Signup failed", error: error.message });
+  }
+};
+
+// OTP verification controller
+export const verifyOTP = async (req, res) => {
+  try {
+    const { email, otp } = req.body;
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found." });
+    }
+
+    // Use instance method to check if OTP is expired
+    if (user.otp !== otp || user.isOtpExpired()) {
+      return res.status(400).json({ message: "Invalid or expired OTP." });
+    }
+
+    user.isVerified = true;
+    user.otp = null;
+    user.otpExpires = null;
+    await user.save();
+
+    res.status(200).json({ message: "OTP verified successfully." });
+  } catch (err) {
+    res
+      .status(500)
+      .json({ message: "OTP verification failed", error: err.message });
+  }
+};
+
+// Login controller (uses session-based authentication)
+export const login = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    const user = await User.findOne({ email });
+
+    if (!user || !(await user.comparePassword(password))) {
+      return res.status(401).json({ message: "Invalid credentials" });
+    }
+
+    if (!user.isVerified) {
+      return res.status(403).json({
+        message: "Account not verified. Please verify OTP sent to email.",
+      });
+    }
+
+    // Set session information for the logged-in user
+    req.session.userId = user._id;
+    req.session.role = user.role; // Optionally store user role
+
+    res
+      .status(200)
+      .json({ message: "Login successful", isAdmin: user.role === "admin" });
+  } catch (err) {
+    res.status(500).json({ message: "Login error", error: err.message });
+  }
+};
+
+// Logout controller (clears session)
+export const logout = (req, res) => {
+  req.session.destroy((err) => {
+    if (err) {
+      return res.status(500).json({ message: "Logout failed" });
+    }
+    res.status(200).json({ message: "Logout successful" });
   });
-});
+};
 
-export default router;
+// Get admin count controller
+export const getAdminCount = async (req, res) => {
+  try {
+    const count = await User.countDocuments({ role: "admin" });
+    res.json({ count });
+  } catch (err) {
+    res.status(500).json({ message: "Could not fetch admin count" });
+  }
+};

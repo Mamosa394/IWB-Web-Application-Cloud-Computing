@@ -30,33 +30,42 @@ const userSchema = new mongoose.Schema(
       default: false,
     },
     otp: {
-      code: { type: String },
-      expiresAt: { type: Date },
+      type: String,
+    },
+    otpExpires: {
+      type: Date,
     },
   },
   { timestamps: true }
 );
 
-// Hash password before saving
+// Middleware to hash the password before saving the user
 userSchema.pre("save", async function (next) {
-  if (!this.isModified("password")) return next();
+  if (!this.isModified("password")) return next(); // Only hash the password if it's modified
 
   try {
+    // Generate salt
     const salt = await bcrypt.genSalt(10);
+    // Hash the password
     this.password = await bcrypt.hash(this.password, salt);
     next();
   } catch (err) {
-    next(err);
+    next(err); // Pass error to next middleware
   }
 });
 
-// Compare entered password with hashed password
+// Instance method to compare hashed password with a given password
 userSchema.methods.comparePassword = async function (password) {
   try {
-    return await bcrypt.compare(password, this.password);
+    return await bcrypt.compare(password, this.password); // Compare provided password with hashed password
   } catch (err) {
-    throw new Error("Error comparing password");
+    throw new Error("Error comparing password"); // Handle error if comparison fails
   }
+};
+
+// Static method to check if OTP is expired
+userSchema.methods.isOtpExpired = function () {
+  return this.otpExpires < Date.now();
 };
 
 const User = mongoose.model("User", userSchema);
