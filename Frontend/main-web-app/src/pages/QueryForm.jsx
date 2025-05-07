@@ -53,18 +53,6 @@ const QueryForm = () => {
   const countByStatus = (status) =>
     queries.filter((query) => query.status === status).length;
 
-  const markAsComplete = async (id) => {
-    try {
-      await fetch(`http://localhost:5000/api/client-queries/${id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: "complete" }),
-      });
-      fetchQueries();
-    } catch (err) {
-      console.error("Error updating status:", err);
-    }
-  };
 
   const chartData = {
     labels: ["Pending", "Complete"],
@@ -110,7 +98,7 @@ const QueryForm = () => {
         />
         <textarea
           className="form-textarea"
-          placeholder="Your message"
+          placeholder="Please enter your query"
           value={formData.message}
           required
           onChange={(e) =>
@@ -136,7 +124,7 @@ const QueryForm = () => {
               <th>Status</th>
               <th>Message</th>
               <th>Auto-Reply</th>
-              <th>Action</th>
+              
             </tr>
           </thead>
           <tbody>
@@ -160,16 +148,6 @@ const QueryForm = () => {
                 <td>{q.message}</td>
                 <td className={q.status === 'pending' ? 'reply-pending' : 'reply-complete'}>
                   {q.autoReply}
-                </td>
-                <td>
-                  {q.status === "pending" && (
-                    <button
-                      onClick={() => markAsComplete(q._id)}
-                      className="complete-button"
-                    >
-                      Mark Complete
-                    </button>
-                  )}
                 </td>
               </tr>
             ))}
