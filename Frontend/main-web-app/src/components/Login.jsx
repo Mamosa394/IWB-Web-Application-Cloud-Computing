@@ -1,13 +1,22 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios"; // import axios
+import axios from "axios";
 import "../styles/Login.css";
+import "../styles/LoadingScreen.css"; // make sure this is added
 import robotImage from "/images/ROBOT.png";
+
+const LoadingScreen = () => (
+  <div className="loading-screen">
+    <div className="loader">
+      <div></div><div></div><div></div><div></div>
+    </div>
+    <p>Logging you in, please wait...</p>
+  </div>
+);
 
 const Login = () => {
   const navigate = useNavigate();
 
-  // form state
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -16,7 +25,6 @@ const Login = () => {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // handle input change
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prevData) => ({
@@ -25,22 +33,19 @@ const Login = () => {
     }));
   };
 
-  // handle form submit
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError("");
 
     try {
-      const response = await axios.post("http://localhost:5000/api/auth/login", formData);
+      const response = await axios.post("https://backend-8-gn1i.onrender.com/api/auth/login", formData);
 
-      // Save token/user info if needed
       // localStorage.setItem("token", response.data.token); // optional
 
-      // Navigate to dashboard or home page
-      navigate("/home-page"); // replace with your route
+      navigate("/home-page");
     } catch (err) {
-      if (err.response && err.response.data && err.response.data.message) {
+      if (err.response?.data?.message) {
         setError(err.response.data.message);
       } else {
         setError("An error occurred. Please try again.");
@@ -49,6 +54,8 @@ const Login = () => {
       setLoading(false);
     }
   };
+
+  if (loading) return <LoadingScreen />;
 
   return (
     <div className="login-page-body">
@@ -88,6 +95,7 @@ const Login = () => {
                     value={formData.email}
                     onChange={handleChange}
                     placeholder="Email"
+                    required
                   />
                 </div>
 
@@ -99,6 +107,7 @@ const Login = () => {
                     value={formData.password}
                     onChange={handleChange}
                     placeholder="Password"
+                    required
                   />
                 </div>
 
@@ -109,7 +118,7 @@ const Login = () => {
                   className="login-page-signup-btn"
                   disabled={loading}
                 >
-                  {loading ? "Logging in..." : "Login"}
+                  Login
                 </button>
               </form>
             </div>

@@ -1,12 +1,14 @@
 import React from "react";
-import {
-  FaTachometerAlt,
-  FaUsers,
-  FaBoxOpen,
-  FaFileAlt,
-  FaCog,
-  FaBars,
-} from "react-icons/fa";
+import { 
+  FaTachometerAlt, 
+  FaUsers, 
+  FaBoxOpen, 
+  FaFileAlt, 
+  FaCartPlus, 
+  FaCog, 
+  FaBars 
+} from 'react-icons/fa';
+ 
 import { Link } from "react-router-dom"; // Ensure this is installed and used
 
 const AdminSidebar = ({ collapsed, toggleSidebar }) => {
@@ -21,10 +23,7 @@ const AdminSidebar = ({ collapsed, toggleSidebar }) => {
           <FaTachometerAlt className="icon" />
           <span className={collapsed ? "collapsed" : ""}>Dashboard</span>
         </Link>
-        <Link to="/admin/users" className="sidebar-link">
-          <FaUsers className="icon" />
-          <span className={collapsed ? "collapsed" : ""}>Users</span>
-        </Link>
+        
         <Link to="/admin-inventory" className="sidebar-link">
           <FaBoxOpen className="icon" />
           <span className={collapsed ? "collapsed" : ""}>Products</span>
@@ -32,6 +31,10 @@ const AdminSidebar = ({ collapsed, toggleSidebar }) => {
         <Link to="/income-statements" className="sidebar-link">
           <FaFileAlt className="icon" />
           <span className={collapsed ? "collapsed" : ""}>Reports</span>
+        </Link>
+        <Link to="/dashboard/admin/add-product" className="sidebar-link">
+          <FaCartPlus className="icon" />
+          <span className={collapsed ? "collapsed" : ""}>Add Products</span>
         </Link>
         <Link to="/settings" className="sidebar-link">
           <FaCog className="icon" />

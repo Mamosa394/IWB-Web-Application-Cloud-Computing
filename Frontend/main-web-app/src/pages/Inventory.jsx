@@ -14,10 +14,14 @@ const Inventory = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const [showBuyModal, setShowBuyModal] = useState(false); 
+  const [showBuyModal, setShowBuyModal] = useState(false);
   const [buyItem, setBuyItem] = useState(null);
+  const [showAdminModal, setShowAdminModal] = useState(false);
+  const [adminCode, setAdminCode] = useState("");
+  const [email, setEmail] = useState("");
+  const [adminVerified, setAdminVerified] = useState(false);
 
-  const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+  const BASE_URL = import.meta.env.VITE_API_URL || "https://backend-8-gn1i.onrender.com";
 
   useEffect(() => {
     const fetchInventory = async () => {
@@ -61,6 +65,32 @@ const Inventory = () => {
     return (filter === "All" || item.type === filter) && matchesSearch(item);
   });
 
+  const handleAdminVerification = () => {
+    const validEmails = [
+      "tlouthabo07@gmail.com",
+      "motsiemamosa@gmail.com",
+      "thatochelane9@gmail.com",
+    ];
+
+    if (adminCode === "IWB-ADMIN-2025" && validEmails.includes(email)) {
+      setAdminVerified(true);
+      setIsAdmin(true);
+      setShowAdminModal(false);
+      // Navigate to the admin dashboard after successful verification
+      navigate("/admin-dashboard");
+    } else {
+      alert("Invalid admin code or email.");
+    }
+  };
+
+  const handleAdminModeToggle = () => {
+    if (!adminVerified) {
+      setShowAdminModal(true); // Show admin verification modal
+    } else {
+      setIsAdmin(!isAdmin);
+    }
+  };
+
   if (loading) return <p>Loading inventory...</p>;
   if (error) return <p>{error}</p>;
 
@@ -70,18 +100,42 @@ const Inventory = () => {
       <header className="inventory-header">
         <button
           className="admin-toggle-btn"
-          onClick={() => {
-            if (!isAdmin) {
-              setIsAdmin(true);
-              navigate("/admin/add-product");
-            } else {
-              setIsAdmin(false);
-            }
-          }}
+          onClick={handleAdminModeToggle}
         >
           Switch to {isAdmin ? "User" : "Admin"} Mode
         </button>
       </header>
+
+      {/* Admin Verification Modal */}
+      {showAdminModal && (
+        <div className="modal-overlay" onClick={() => setShowAdminModal(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <h2>Admin Verification</h2>
+            <div className="input-group">
+              <label>Email:</label>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="Enter your email"
+              />
+            </div>
+            <div className="input-group">
+              <label>Admin Code:</label>
+              <input
+                type="text"
+                value={adminCode}
+                onChange={(e) => setAdminCode(e.target.value)}
+                placeholder="Enter admin code"
+              />
+            </div>
+            <div className="modal-actions">
+              <button onClick={() => setShowAdminModal(false)}>Cancel</button>
+              <button onClick={handleAdminVerification}>Verify</button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="filter-search-bar">
         <div className="filter-buttons">

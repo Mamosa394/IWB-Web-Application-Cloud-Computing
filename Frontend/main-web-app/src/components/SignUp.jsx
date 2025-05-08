@@ -3,8 +3,20 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { FaUser, FaEnvelope, FaLock, FaShieldAlt } from "react-icons/fa";
 import "../styles/SignUp.css";
+import "../styles/LoadingScreen.css";
 import robotImage from "/images/ROBOT.png";
 import logo from "/images/logo.jpg";
+
+const LoadingScreen = () => {
+  return (
+    <div className="loading-screen">
+      <div className="loader">
+        <div></div><div></div><div></div><div></div>
+      </div>
+      <p>Signing you up, please wait...</p>
+    </div>
+  );
+};
 
 const SignUp = () => {
   const navigate = useNavigate();
@@ -27,7 +39,7 @@ const SignUp = () => {
 
   const handleAdminToggle = () => {
     setIsAdmin((prev) => !prev);
-    setFormData({ ...formData, adminCode: "" }); // Clear admin code if toggled off
+    setFormData({ ...formData, adminCode: "" });
   };
 
   const handleSubmit = async (e) => {
@@ -37,7 +49,7 @@ const SignUp = () => {
     setSuccess("");
 
     try {
-      const res = await axios.post("http://localhost:5000/api/auth/signup", {
+      const res = await axios.post("https://backend-8-gn1i.onrender.com/api/auth/signup", {
         ...formData,
         isAdmin,
       });
@@ -45,7 +57,7 @@ const SignUp = () => {
       setSuccess(res.data.message || "Account created successfully!");
       setTimeout(() => {
         navigate("/login");
-      }, 2000); // Redirect after 2s
+      }, 2000);
     } catch (err) {
       setError(
         err.response?.data?.message ||
@@ -55,6 +67,8 @@ const SignUp = () => {
       setLoading(false);
     }
   };
+
+  if (loading) return <LoadingScreen />;
 
   return (
     <div className="signup-ui-container">
@@ -165,13 +179,7 @@ const SignUp = () => {
               disabled={loading}
               aria-busy={loading}
             >
-              {loading ? (
-                <span className="spinner"></span>
-              ) : isAdmin ? (
-                "Register Admin"
-              ) : (
-                "Create Account"
-              )}
+              {isAdmin ? "Register Admin" : "Create Account"}
             </button>
           </form>
         </div>

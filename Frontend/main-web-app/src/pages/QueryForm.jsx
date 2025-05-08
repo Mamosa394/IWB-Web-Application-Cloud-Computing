@@ -36,7 +36,7 @@ const QueryForm = () => {
 
   const fetchQueries = async () => {
     try {
-      const res = await fetch("http://localhost:5000/api/client-queries");
+      const res = await fetch("https://backend-8-gn1i.onrender.com/api/client-queries");
       const data = await res.json();
       setQueries(data);
     } catch (err) {

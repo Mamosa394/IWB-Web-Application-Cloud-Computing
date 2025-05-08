@@ -18,7 +18,7 @@ const Header = () => {
       <nav className="nav-center">
         <Link to="/home-page">Home</Link>
         <Link to="/inventory">Inventory</Link>
-        <Link to="/investors-space">Investors Hub</Link>
+        <Link to="/net-income">Investors Hub</Link>
         <Link to="/query-form">Queries</Link>
    
         <Link to="/about">About</Link>

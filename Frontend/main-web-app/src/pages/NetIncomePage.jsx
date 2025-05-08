@@ -108,7 +108,7 @@ const NetIncomePage = () => {
         <div className="sidebar-menu" style={styles.menu}>
           <ul style={styles.menuList}>
             <li>
-              <Link to="/" style={styles.link}>
+              <Link to="/home-page" style={styles.link}>
                 Home Page
               </Link>
             </li>

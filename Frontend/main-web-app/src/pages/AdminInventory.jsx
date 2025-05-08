@@ -15,7 +15,7 @@ const AdminInventory = () => {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const response = await axios.get("http://localhost:5000/api/products");
+        const response = await axios.get("https://backend-8-gn1i.onrender.com/api/products");
         setProducts(response.data);
       } catch (error) {
         console.error("Error fetching products:", error);
@@ -31,7 +31,7 @@ const AdminInventory = () => {
   // Delete product
   const handleDeleteProduct = async (id) => {
     try {
-      await axios.delete(`http://localhost:5000/api/products/${id}`);
+      await axios.delete(`https://backend-8-gn1i.onrender.com/api/products/${id}`);
       setProducts(products.filter((product) => product._id !== id));
       setActionMessage("Product has been deleted successfully! 🧹");
     } catch (error) {
@@ -91,7 +91,7 @@ const AdminInventory = () => {
           {products.map((product) => (
             <div className="inventory-card" key={product._id}>
               <img
-                src={`http://localhost:5000${product.image}`}
+                src={`https://backend-8-gn1i.onrender.com${product.image}`}
                 alt={product.name}
                 className="inventory-img"
               />
