@@ -14,10 +14,15 @@ const Inventory = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  const [showBuyModal, setShowBuyModal] = useState(false); 
+  const [buyItem, setBuyItem] = useState(null);
+
+  const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+
   useEffect(() => {
     const fetchInventory = async () => {
       try {
-        const response = await Axios.get("http://localhost:5000/api/products");
+        const response = await Axios.get(`${BASE_URL}/api/products`);
         setInventory(response.data);
         setLoading(false);
       } catch (err) {
@@ -27,14 +32,10 @@ const Inventory = () => {
     };
 
     fetchInventory();
-  }, []);
-
-  const handleReserve = (id) => {
-    alert(`Computer with ID ${id} reserved!`);
-  };
+  }, [BASE_URL]);
 
   const handleDelete = (id) => {
-    alert(`Computer with ID ${id} deleted (admin only)!`);
+    alert(`Item with ID ${id} deleted (admin only)!`);
   };
 
   const handleEdit = (id) => {
@@ -42,7 +43,13 @@ const Inventory = () => {
   };
 
   const handleBuy = (item) => {
-    alert(`You bought ${item.name} for M ${item.price}!`);
+    setBuyItem(item);
+    setShowBuyModal(true);
+  };
+
+  const handleCloseModal = () => {
+    setShowBuyModal(false);
+    setBuyItem(null);
   };
 
   const matchesSearch = (item) => {
@@ -54,13 +61,8 @@ const Inventory = () => {
     return (filter === "All" || item.type === filter) && matchesSearch(item);
   });
 
-  if (loading) {
-    return <p>Loading inventory...</p>;
-  }
-
-  if (error) {
-    return <p>{error}</p>;
-  }
+  if (loading) return <p>Loading inventory...</p>;
+  if (error) return <p>{error}</p>;
 
   return (
     <div className="inventory-container">
@@ -106,7 +108,7 @@ const Inventory = () => {
         {filteredInventory.map((item) => (
           <div key={item._id} className="inventory-card">
             <img
-              src={`http://localhost:5000${item.image}`}
+              src={`${BASE_URL}${item.image}`}
               alt={item.name}
               className="inventory-img"
               onClick={() => setSelectedItem(item)}
@@ -114,34 +116,21 @@ const Inventory = () => {
             <div className="inventory-info">
               <h3>{item.name}</h3>
               <ul>
-                <li>
-                  <strong>CPU:</strong> {item.specs.cpu}
-                </li>
-                <li>
-                  <strong>RAM:</strong> {item.specs.ram}
-                </li>
-                <li>
-                  <strong>Storage:</strong> {item.specs.storage}
-                </li>
-                <li>
-                  <strong>GPU:</strong> {item.specs.gpu}
-                </li>
-                <li>
-                  <strong>Price:</strong> M {item.price}
-                </li>
+                <li><strong>CPU:</strong> {item.specs.cpu}</li>
+                <li><strong>RAM:</strong> {item.specs.ram}</li>
+                <li><strong>Storage:</strong> {item.specs.storage}</li>
+                <li><strong>GPU:</strong> {item.specs.gpu}</li>
+                <li><strong>Price:</strong> M {item.price}</li>
               </ul>
               <div className="tag-container">
                 {item.tags.map((tag, index) => (
-                  <span key={`${tag}-${index}`} className="tag">
-                    {tag}
-                  </span>
+                  <span key={`${tag}-${index}`} className="tag">{tag}</span>
                 ))}
               </div>
               <div className="card-actions">
                 <span className={`status ${item.status.toLowerCase()}`}>
                   {item.status}
                 </span>
-                <button onClick={() => handleReserve(item._id)}>Reserve</button>
                 {isAdmin && (
                   <>
                     <button onClick={() => handleEdit(item._id)}>Edit</button>
@@ -157,33 +146,33 @@ const Inventory = () => {
         ))}
       </div>
 
-      {selectedItem && (
-        <div className="modal-overlay" onClick={() => setSelectedItem(null)}>
+      {/* Buy Modal */}
+      {showBuyModal && buyItem && (
+        <div className="modal-overlay" onClick={handleCloseModal}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <h2>{selectedItem.name}</h2>
+            <h2>Confirm Purchase</h2>
             <img
-              src={`http://localhost:5000${selectedItem.image}`}
-              alt={selectedItem.name}
+              src={`${BASE_URL}${buyItem.image}`}
+              alt={buyItem.name}
+              className="modal-item-img"
             />
-            <p>
-              <strong>CPU:</strong> {selectedItem.specs.cpu}
-            </p>
-            <p>
-              <strong>RAM:</strong> {selectedItem.specs.ram}
-            </p>
-            <p>
-              <strong>Storage:</strong> {selectedItem.specs.storage}
-            </p>
-            <p>
-              <strong>GPU:</strong> {selectedItem.specs.gpu}
-            </p>
-            <p>
-              <strong>Price:</strong> M {selectedItem.price}
-            </p>
-            <p>
-              <strong>Status:</strong> {selectedItem.status}
-            </p>
-            <button onClick={() => setSelectedItem(null)}>Close</button>
+            <p><strong>Item:</strong> {buyItem.name}</p>
+            <p><strong>CPU:</strong> {buyItem.specs.cpu}</p>
+            <p><strong>RAM:</strong> {buyItem.specs.ram}</p>
+            <p><strong>Storage:</strong> {buyItem.specs.storage}</p>
+            <p><strong>GPU:</strong> {buyItem.specs.gpu}</p>
+            <p><strong>Price:</strong> M {buyItem.price}</p>
+            <div className="modal-actions">
+              <button onClick={handleCloseModal}>Cancel</button>
+              <button
+                onClick={() => {
+                  alert(`You bought ${buyItem.name} for M ${buyItem.price}!`);
+                  handleCloseModal();
+                }}
+              >
+                Confirm Purchase
+              </button>
+            </div>
           </div>
         </div>
       )}

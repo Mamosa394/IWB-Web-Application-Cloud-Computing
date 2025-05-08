@@ -193,7 +193,7 @@ const AddProduct = () => {
             </div>
 
             <div className="form-group">
-              <label>Price ($)</label>
+              <label>Price (M)</label>
               <input
                 type="number"
                 value={price}

@@ -7,86 +7,50 @@ import robotImage from "/images/ROBOT.png";
 import logo from "/images/logo.jpg";
 
 const SignUp = () => {
+  const navigate = useNavigate();
+
   const [formData, setFormData] = useState({
     username: "",
     email: "",
     password: "",
     adminCode: "",
   });
+
   const [isAdmin, setIsAdmin] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-  const [loading, setLoading] = useState(false);
-  const navigate = useNavigate();
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
   const handleAdminToggle = () => {
-    setIsAdmin(!isAdmin);
-    // Clear admin code when toggling
-    if (!isAdmin) {
-      setFormData((prev) => ({ ...prev, adminCode: "" }));
-    }
+    setIsAdmin((prev) => !prev);
+    setFormData({ ...formData, adminCode: "" }); // Clear admin code if toggled off
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
     setError("");
     setSuccess("");
-    setLoading(true);
-
-    const { username, email, password, adminCode } = formData;
-
-    // Validation
-    if (!username || !email || !password) {
-      setError("All fields are required.");
-      setLoading(false);
-      return;
-    }
-
-    if (isAdmin && !adminCode) {
-      setError("Admin registration code is required.");
-      setLoading(false);
-      return;
-    }
-
-    const payload = {
-      username,
-      email,
-      password,
-      role: isAdmin ? "admin" : "user",
-      ...(isAdmin && { adminCode }), // Only include adminCode if registering as admin
-    };
 
     try {
-      const response = await axios.post(
-        `${process.env.REACT_APP_API_URL}/api/auth/signup`,
-        payload,
-        {
-          withCredentials: true,
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
+      const res = await axios.post("http://localhost:5000/api/auth/signup", {
+        ...formData,
+        isAdmin,
+      });
 
-      if (response.status === 200 || response.status === 201) {
-        setSuccess("Account created successfully! Redirecting to login...");
-        setTimeout(() => navigate("/login"), 2000);
-      }
+      setSuccess(res.data.message || "Account created successfully!");
+      setTimeout(() => {
+        navigate("/login");
+      }, 2000); // Redirect after 2s
     } catch (err) {
-      if (err.response) {
-        setError(
-          err.response.data?.message || "Registration failed. Please try again."
-        );
-      } else if (err.request) {
-        setError("No response from server. Please try again later.");
-      } else {
-        setError("An unexpected error occurred.");
-      }
+      setError(
+        err.response?.data?.message ||
+          "Something went wrong. Please try again."
+      );
     } finally {
       setLoading(false);
     }
@@ -174,7 +138,7 @@ const SignUp = () => {
                   value={formData.adminCode}
                   onChange={handleChange}
                   className="sign-input"
-                  required={isAdmin}
+                  required
                 />
               </div>
             )}

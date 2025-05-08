@@ -4,7 +4,19 @@ import { Chart as ChartJS, BarElement, CategoryScale, LinearScale, Tooltip, Lege
 import '../styles/query.css';
 import Header from '../components/Header';
 
+
 ChartJS.register(BarElement, CategoryScale, LinearScale, Tooltip, Legend);
+
+const PopupMessage = ({ message, onClose }) => {
+  return (
+    <div className="popup-overlay" onClick={onClose}>
+      <div className="popup-container" onClick={(e) => e.stopPropagation()}>
+        <p className="popup-message">{message}</p>
+        <button className="popup-close-btn" onClick={onClose}>Close</button>
+      </div>
+    </div>
+  );
+};
 
 const QueryForm = () => {
   const [formData, setFormData] = useState({
@@ -15,6 +27,8 @@ const QueryForm = () => {
   const [queries, setQueries] = useState([]);
   const [statusMessage, setStatusMessage] = useState('');
   const [selectedRows, setSelectedRows] = useState([]);
+  const [isPopupVisible, setIsPopupVisible] = useState(false); // Popup visibility state
+  const [popupMessage, setPopupMessage] = useState(''); // Popup message state
 
   useEffect(() => {
     fetchQueries();
@@ -45,6 +59,10 @@ const QueryForm = () => {
       setStatusMessage(`Query submitted: Status - ${result.status}`);
       setFormData({ name: "", email: "", message: "" });
       fetchQueries();
+
+      // Show the popup message after a successful submission
+      setPopupMessage("Your query has been submitted successfully!");
+      setIsPopupVisible(true);
     } catch (err) {
       console.error("Submission error:", err);
       setStatusMessage("Submission failed.");
@@ -74,6 +92,10 @@ const QueryForm = () => {
   };
 
   const isRowSelected = (id) => selectedRows.includes(id);
+
+  const closePopup = () => {
+    setIsPopupVisible(false);
+  };
 
   return (
     <div className="query-container">
@@ -156,6 +178,11 @@ const QueryForm = () => {
           </tbody>
         </table>
       </div>
+
+      {/* Display Popup if Visible */}
+      {isPopupVisible && (
+        <PopupMessage message={popupMessage} onClose={closePopup} />
+      )}
     </div>
   );
 };

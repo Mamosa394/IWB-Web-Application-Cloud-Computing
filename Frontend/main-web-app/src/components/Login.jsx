@@ -1,63 +1,52 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import axios from "axios"; // import axios
 import "../styles/Login.css";
 import robotImage from "/images/ROBOT.png";
 
 const Login = () => {
+  const navigate = useNavigate();
+
+  // form state
   const [formData, setFormData] = useState({
     email: "",
     password: "",
   });
+
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const navigate = useNavigate();
 
+  // handle input change
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    setFormData((prevData) => ({
+      ...prevData,
+      [name]: value,
+    }));
   };
 
+  // handle form submit
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const { email, password } = formData;
-
-    if (!email || !password) {
-      setError("Please fill in both fields.");
-      return;
-    }
-
-    setError("");
     setLoading(true);
+    setError("");
 
     try {
-      const response = await fetch("http://localhost:5000/api/auth/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email, password }),
-        credentials: "include", // Allow the cookie/session to be included in the request
-      });
+      const response = await axios.post("http://localhost:5000/api/auth/login", formData);
 
-      const data = await response.json();
-      setLoading(false);
+      // Save token/user info if needed
+      // localStorage.setItem("token", response.data.token); // optional
 
-      if (response.ok) {
-        // Store the necessary data in sessionStorage or localStorage
-        sessionStorage.setItem("isAdmin", JSON.stringify(data.isAdmin));
-
-        // Redirect based on role
-        if (data.isAdmin) {
-          navigate("/admin-dashboard"); // Redirect to admin dashboard
-        } else {
-          navigate("/home-page"); // Redirect to the home page for normal users
-        }
-      } else {
-        setError(data.message || "Invalid email or password.");
-      }
+      // Navigate to dashboard or home page
+      navigate("/home-page"); // replace with your route
     } catch (err) {
+      if (err.response && err.response.data && err.response.data.message) {
+        setError(err.response.data.message);
+      } else {
+        setError("An error occurred. Please try again.");
+      }
+    } finally {
       setLoading(false);
-      setError("Unable to connect to the server. Please try again later.");
     }
   };
 
@@ -94,22 +83,22 @@ const Login = () => {
                 <div className="login-page-input-wrapper">
                   <input
                     type="email"
+                    className="login-page-input"
                     name="email"
-                    placeholder="Email"
                     value={formData.email}
                     onChange={handleChange}
-                    required
+                    placeholder="Email"
                   />
                 </div>
 
                 <div className="login-page-input-wrapper">
                   <input
                     type="password"
+                    className="login-page-input"
                     name="password"
-                    placeholder="Password"
                     value={formData.password}
                     onChange={handleChange}
-                    required
+                    placeholder="Password"
                   />
                 </div>
 

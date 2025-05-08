@@ -19,7 +19,9 @@ import AdminInventory from "./pages/AdminInventory";
 import AdminSettings from "./pages/AdminSettings";
 import OtpVerification from "./pages/OtpVerification";
 import About from "./pages/About";
-import Contact from "./pages/Contact";
+import PaymentConfirmation from "./pages/PaymentConfirmation";
+import NetIncomePage from "./pages/NetIncomePage";
+
 
 const App = () => {
   return (
@@ -50,7 +52,8 @@ const App = () => {
               <Route path="/about" element={<About />} />
               <Route path="/query-lists" element={<QueryList />} />
               <Route path="/repairs" element={<Repairs />} />
-              <Route path="/otp" element={<OtpVerification />} />
+              <Route path="/payment" element={<PaymentConfirmation />} />
+              <Route path="/net-income" element={<NetIncomePage />} />
             </Routes>
           </main>
         </div>

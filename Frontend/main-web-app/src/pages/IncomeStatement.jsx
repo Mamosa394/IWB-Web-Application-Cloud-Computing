@@ -12,7 +12,6 @@ import {
   Legend,
   ArcElement,
 } from "chart.js";
-import axios from "axios";
 import AdminSidebar from "../components/AdminSidebar";
 
 // Initialize Chart.js
@@ -27,53 +26,20 @@ ChartJS.register(
   Legend
 );
 
-// Utility functions for localStorage (if needed for fallback)
-const saveDataToLocalStorage = (month, data) => {
-  localStorage.setItem(`incomeData-${month}`, JSON.stringify(data));
-};
-
-const loadDataFromLocalStorage = (month) => {
-  const data = localStorage.getItem(`incomeData-${month}`);
-  return data ? JSON.parse(data) : null;
-};
-
-// Define the loadUserProfile function here
-const loadUserProfile = () => {
-  const profile = localStorage.getItem("userProfile");
-  return profile ? JSON.parse(profile) : { name: "", email: "" }; // Default user data
+// Hardcoded data (No backend involved)
+const incomeData = {
+  revenue: 3000000, // 3 million Maloti
+  costOfGoodsSold: 800000, // Example Cost of Goods Sold
+  operatingExpenses: 500000, // Example Operating Expenses
+  taxes: 200000, // Example Taxes
+  additionalCategories: [
+    { label: "Miscellaneous", amount: 100000 }, // Example Additional Category
+  ],
 };
 
 const IncomeStatement = () => {
   const [month, setMonth] = useState("April 2025");
-  const [userData, setUserData] = useState(loadUserProfile()); // Load initial user data from localStorage
-  const [data, setData] = useState(
-    loadDataFromLocalStorage(month) || {
-      revenue: 0,
-      costOfGoodsSold: 0,
-      operatingExpenses: 0,
-      taxes: 0,
-      additionalCategories: [],
-    }
-  );
-
-  // Function to load user profile data (from API or local storage)
-  const loadUserProfileFromAPI = async () => {
-    try {
-      const response = await axios.get(
-        `http://localhost:5000/api/user/${userData.email}`
-      );
-      setUserData(response.data); // Assuming the response has the user data
-      localStorage.setItem("userProfile", JSON.stringify(response.data)); // Save to localStorage
-    } catch (error) {
-      console.error("Error loading user profile:", error);
-    }
-  };
-
-  useEffect(() => {
-    if (userData.email) {
-      loadUserProfileFromAPI(); // Fetch user profile from API if email exists
-    }
-  }, [userData.email]); // Trigger API call whenever the email changes
+  const [data, setData] = useState(incomeData);
 
   const handleChange = (key, value) => {
     setData({ ...data, [key]: Number(value) || 0 });
@@ -101,14 +67,6 @@ const IncomeStatement = () => {
     );
     setData({ ...data, additionalCategories: updatedCategories });
   };
-
-  const saveUserProfile = () => {
-    localStorage.setItem("userProfile", JSON.stringify(userData));
-  };
-
-  useEffect(() => {
-    saveDataToLocalStorage(month, data);
-  }, [month, data]);
 
   const grossProfit = data.revenue - data.costOfGoodsSold;
   const netIncome = grossProfit - data.operatingExpenses - data.taxes;
@@ -170,13 +128,6 @@ const IncomeStatement = () => {
     ],
   };
 
-  const averageIncome =
-    (data.revenue +
-      data.costOfGoodsSold +
-      data.operatingExpenses +
-      data.taxes) /
-    4;
-
   return (
     <div className="income-statement-page" style={{ display: "flex" }}>
       <AdminSidebar />
@@ -185,38 +136,9 @@ const IncomeStatement = () => {
           Projected Monthly Income Statement
         </h1>
 
-        {/* Main Section: User Profile (left) and Income Statement (right) */}
+        {/* Main Section: Income Statement */}
         <div className="main-section">
-          {/* User Profile Section (Left) */}
-          <div className="user-profile">
-            <h2 className="user-profile-title">User Profile</h2>
-            <div className="user-profile-item">
-              <span className="user-profile-label">Name</span>
-              <input
-                type="text"
-                value={userData.name}
-                onChange={(e) =>
-                  setUserData({ ...userData, name: e.target.value })
-                }
-                onBlur={saveUserProfile}
-                className="user-profile-input"
-              />
-            </div>
-            <div className="user-profile-item">
-              <span className="user-profile-label">Email</span>
-              <input
-                type="email"
-                value={userData.email}
-                onChange={(e) =>
-                  setUserData({ ...userData, email: e.target.value })
-                }
-                onBlur={saveUserProfile}
-                className="user-profile-input"
-              />
-            </div>
-          </div>
-
-          {/* Income Statement Section (Right) */}
+          {/* Income Statement Section */}
           <div className="income-input-container">
             {/* Editable Rows */}
             <div className="income-statement-item">

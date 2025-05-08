@@ -1,4 +1,3 @@
-// routes/productRoutes.js
 import express from "express";
 import multer from "multer";
 import path from "path";
@@ -16,6 +15,9 @@ const uploadDir = path.join(__dirname, "../uploads");
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir);
 }
+
+// Serve static files from the uploads directory
+router.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 
 // Multer config
 const storage = multer.diskStorage({
@@ -35,8 +37,7 @@ const upload = multer({ storage });
  */
 router.post("/", upload.single("image"), async (req, res) => {
   try {
-    const { name, type, cpu, ram, storage, gpu, price, status, tags } =
-      req.body;
+    const { name, type, cpu, ram, storage, gpu, price, status, tags } = req.body;
     const image = req.file ? `/uploads/${req.file.filename}` : null;
 
     const newProduct = new Product({

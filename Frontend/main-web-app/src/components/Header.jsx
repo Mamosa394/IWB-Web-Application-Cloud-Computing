@@ -18,11 +18,11 @@ const Header = () => {
       <nav className="nav-center">
         <Link to="/home-page">Home</Link>
         <Link to="/inventory">Inventory</Link>
-        <Link to="/investors-space">InvestorsSpace</Link>
-        <Link to="query-form">Queries</Link>
-        <Link to="query=list">Lists</Link>
+        <Link to="/investors-space">Investors Hub</Link>
+        <Link to="/query-form">Queries</Link>
+   
         <Link to="/about">About</Link>
-        <Link to="/contact">Contact</Link>
+
       </nav>
 
       <div className="header-right">

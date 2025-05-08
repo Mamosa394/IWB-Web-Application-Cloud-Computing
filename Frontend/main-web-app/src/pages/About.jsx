@@ -1,6 +1,8 @@
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import "../styles/About.css";
+import Thabo from "../components/us/Thabo.jpg";
+import Kay from "../components/us/Kay.jpg";
 
 const About = () => {
   return (
@@ -24,8 +26,8 @@ const About = () => {
             <h2>Meet the Founders</h2>
             <div className="founder-cards">
               <div className="founder-card">
-                <img
-                  src="/Founders/Kenneth.jpeg"alt="Kenneth"className="founder-img"
+                <img 
+                  src={Thabo} width={150}
                 />
                 <h3>Kenneth M.</h3>
                 <p>Co-Founder & CTO</p>
@@ -36,7 +38,7 @@ const About = () => {
               </div>
               <div className="founder-card">
                 <img
-                  src="/Founders/Shadrack.jpg"alt="Shadrack"className="founder-img"
+                  src={Kay} width={150} height={150} 
                 />
                 <h3>Shadrack L.</h3>
                 <p>Co-Founder & CEO</p>

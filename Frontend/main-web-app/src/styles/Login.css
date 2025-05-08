@@ -233,7 +233,21 @@
   text-align: center;
   color: #fbba3f;
 }
+.login-page-input {
+  width: 250px;
+  padding: 12px;
+  border-radius: 8px;
+  background-color: white;
+  color: #333;
+  font-size: 1rem;
+  border: 2px solid #ccc;
+  margin-top: -20px;
+  margin-bottom: 40px;
 
+}
+.login-page-input::placeholder {
+  color: #aaa; /* Light gray placeholder text */
+}
 .login-page-icon-row {
   display: flex;
   justify-content: center;
