@@ -1,22 +1,18 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import { FaUser, FaEnvelope, FaLock, FaShieldAlt } from "react-icons/fa";
+import { FaUser, FaEnvelope, FaLock } from "react-icons/fa";
 import "../styles/SignUp.css";
 import "../styles/LoadingScreen.css";
 import robotImage from "/images/ROBOT.png";
 import logo from "/images/logo.jpg";
 
-const LoadingScreen = () => {
-  return (
-    <div className="loading-screen">
-      <div className="loader">
-        <div></div><div></div><div></div><div></div>
-      </div>
-      <p>Signing you up, please wait...</p>
-    </div>
-  );
-};
+const LoadingScreen = () => (
+  <div className="loading-screen">
+    <div className="loader"><div></div><div></div><div></div><div></div></div>
+    <p>Signing you up, please wait...</p>
+  </div>
+);
 
 const SignUp = () => {
   const navigate = useNavigate();
@@ -25,21 +21,30 @@ const SignUp = () => {
     username: "",
     email: "",
     password: "",
-    adminCode: "",
+    role: "client"
   });
 
-  const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [roleLimits, setRoleLimits] = useState({ current: {}, max: {} });
+
+  useEffect(() => {
+    // Fetch role limits from backend
+    const fetchRoleLimits = async () => {
+      try {
+        const res = await axios.get("https://backend-8-gn1i.onrender.com/api/auth/role-limits");
+        setRoleLimits(res.data);
+      } catch (err) {
+        console.error("Failed to fetch role limits.");
+      }
+    };
+
+    fetchRoleLimits();
+  }, []);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
-
-  const handleAdminToggle = () => {
-    setIsAdmin((prev) => !prev);
-    setFormData({ ...formData, adminCode: "" });
   };
 
   const handleSubmit = async (e) => {
@@ -49,26 +54,26 @@ const SignUp = () => {
     setSuccess("");
 
     try {
-      const res = await axios.post("https://backend-8-gn1i.onrender.com/api/auth/signup", {
-        ...formData,
-        isAdmin,
-      });
-
+      const res = await axios.post("https://backend-8-gn1i.onrender.com/api/auth/signup", formData);
       setSuccess(res.data.message || "Account created successfully!");
-      setTimeout(() => {
-        navigate("/login");
-      }, 2000);
+      setTimeout(() => navigate("/login"), 2000);
     } catch (err) {
-      setError(
-        err.response?.data?.message ||
-          "Something went wrong. Please try again."
-      );
+      const serverMessage = err.response?.data?.error || "Something went wrong. Please try again.";
+
+      // If it's a "role full" error, customize message
+      if (serverMessage.includes("Maximum number")) {
+        setError("That role is currently full. Please choose a different one.");
+      } else {
+        setError(serverMessage);
+      }
     } finally {
       setLoading(false);
     }
   };
 
   if (loading) return <LoadingScreen />;
+
+  const roles = ["client", "admin", "sales", "finance", "investor"];
 
   return (
     <div className="signup-ui-container">
@@ -83,7 +88,7 @@ const SignUp = () => {
         <div className="signup-form-box">
           <div className="glow-border"></div>
 
-          <h2>{isAdmin ? "Admin Registration" : "Create an account"}</h2>
+          <h2>Create an Account</h2>
 
           <div className="logo-wrapper">
             <img src={logo} alt="logo" className="logo" />
@@ -142,35 +147,33 @@ const SignUp = () => {
               />
             </div>
 
-            {isAdmin && (
-              <div className="input-wrapper">
-                <FaShieldAlt className="input-icon" />
-                <input
-                  type="password"
-                  name="adminCode"
-                  placeholder="Admin Registration Code"
-                  value={formData.adminCode}
-                  onChange={handleChange}
-                  className="sign-input"
-                  required
-                />
-              </div>
-            )}
+            <div className="input-wrapper">
+              <label htmlFor="role">Select Role:</label>
+              <select
+                name="role"
+                value={formData.role}
+                onChange={handleChange}
+                className="sign-input"
+                required
+              >
+                {roles.map((role) => {
+                  const current = roleLimits.current?.[role] ?? 0;
+                  const max = roleLimits.max?.[role] ?? Infinity;
+                  const isFull = current >= max;
+
+                  return (
+                    <option key={role} value={role} disabled={isFull}>
+                      {role.charAt(0).toUpperCase() + role.slice(1)}
+                      {isFull ? " (Full)" : ""}
+                    </option>
+                  );
+                })}
+              </select>
+            </div>
 
             <div className="terms">
               <input type="checkbox" required className="tick" id="terms" />
               <label htmlFor="terms">I agree to the Terms & Conditions</label>
-            </div>
-
-            <div className="terms">
-              <input
-                type="checkbox"
-                id="adminMode"
-                className="tick"
-                checked={isAdmin}
-                onChange={handleAdminToggle}
-              />
-              <label htmlFor="adminMode">Register as Admin</label>
             </div>
 
             <button
@@ -179,7 +182,7 @@ const SignUp = () => {
               disabled={loading}
               aria-busy={loading}
             >
-              {isAdmin ? "Register Admin" : "Create Account"}
+              Create Account
             </button>
           </form>
         </div>

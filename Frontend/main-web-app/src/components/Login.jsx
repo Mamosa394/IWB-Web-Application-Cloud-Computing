@@ -1,8 +1,8 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import "../styles/Login.css";
-import "../styles/LoadingScreen.css"; // make sure this is added
+import "../styles/LoadingScreen.css";
 import robotImage from "/images/ROBOT.png";
 
 const LoadingScreen = () => (
@@ -16,21 +16,13 @@ const LoadingScreen = () => (
 
 const Login = () => {
   const navigate = useNavigate();
-
-  const [formData, setFormData] = useState({
-    email: "",
-    password: "",
-  });
-
+  const [formData, setFormData] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prevData) => ({
-      ...prevData,
-      [name]: value,
-    }));
+    setFormData((prevData) => ({ ...prevData, [name]: value }));
   };
 
   const handleSubmit = async (e) => {
@@ -39,14 +31,30 @@ const Login = () => {
     setError("");
 
     try {
-      const response = await axios.post("https://backend-8-gn1i.onrender.com/api/auth/login", formData);
+      const response = await axios.post(
+        "https://backend-8-gn1i.onrender.com/api/auth/login",
+        formData
+      );
 
-      // localStorage.setItem("token", response.data.token); // optional
+      // Optionally store user info in localStorage
+      const user = response.data.user;
+      localStorage.setItem("user", JSON.stringify(user));
 
-      navigate("/home-page");
+      // Redirect based on user role
+      if (user.role === "admin") {
+        navigate("/admin-dashboard");
+      } else if (user.role === "sales") {
+        navigate("/sales-dashboard");
+      } else if (user.role === "finance") {
+        navigate("/income-statements");
+      } else if (user.role === "investor") {
+        navigate("/income-statements");
+      } else {
+        navigate("/home-page"); // Default to client page
+      }
     } catch (err) {
-      if (err.response?.data?.message) {
-        setError(err.response.data.message);
+      if (err.response?.data?.error) {
+        setError(err.response.data.error);
       } else {
         setError("An error occurred. Please try again.");
       }
@@ -63,11 +71,7 @@ const Login = () => {
         <div className="login-page-left-panel-container">
           <div className="login-page-left-panel">
             <div className="login-page-robot-container">
-              <img
-                src={robotImage}
-                alt="Robot"
-                className="login-page-robot-img"
-              />
+              <img src={robotImage} alt="Robot" className="login-page-robot-img" />
               <p className="login-page-knee-caption">
                 YOUR IDEAS START HERE!
                 <br />

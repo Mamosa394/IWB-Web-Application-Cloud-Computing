@@ -4,11 +4,23 @@ import User from "../models/User.js";
 
 const router = express.Router();
 
+// Define max allowed users per role
+const MAX_USERS = {
+  sales: 3,
+  admin: 3,
+  finance: 3,
+  investor: 3,
+  client: Infinity // Allow unlimited clients
+};
+
 // SIGNUP
 router.post("/signup", async (req, res) => {
-  const { username, email, password } = req.body;
+  const { username, email, password, role = "client" } = req.body;
 
-  // Check username length again (extra protection)
+  if (!["sales", "admin", "finance", "investor", "client"].includes(role)) {
+    return res.status(400).json({ error: "Invalid role." });
+  }
+
   if (username.length < 3) {
     return res.status(400).json({ error: "Username must be at least 3 characters." });
   }
@@ -17,6 +29,12 @@ router.post("/signup", async (req, res) => {
     const existingUser = await User.findOne({ email });
     if (existingUser) return res.status(409).json({ error: "Email already exists." });
 
+    // Check if max number of users for this role has been reached
+    const roleCount = await User.countDocuments({ role });
+    if (roleCount >= MAX_USERS[role]) {
+      return res.status(403).json({ error: `Maximum number of ${role} users reached.` });
+    }
+
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
@@ -24,6 +42,7 @@ router.post("/signup", async (req, res) => {
       username,
       email,
       password: hashedPassword,
+      role
     });
 
     await newUser.save();
@@ -44,7 +63,14 @@ router.post("/login", async (req, res) => {
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) return res.status(401).json({ error: "Invalid email or password." });
 
-    res.status(200).json({ message: "Login successful", user: { email: user.email, username: user.username, isAdmin: user.isAdmin } });
+    res.status(200).json({
+      message: "Login successful",
+      user: {
+        email: user.email,
+        username: user.username,
+        role: user.role
+      }
+    });
   } catch (err) {
     res.status(500).json({ error: "Server error during login." });
   }
