@@ -4,6 +4,7 @@ import axios from "axios";
 import "../styles/Login.css";
 import "../styles/LoadingScreen.css";
 import robotImage from "/images/ROBOT.png";
+import { FaEnvelope, FaLock, FaShieldAlt } from "react-icons/fa";
 
 const LoadingScreen = () => (
   <div className="loading-screen">
@@ -16,9 +17,15 @@ const LoadingScreen = () => (
 
 const Login = () => {
   const navigate = useNavigate();
-  const [formData, setFormData] = useState({ email: "", password: "" });
+  const [formData, setFormData] = useState({ 
+    email: "", 
+    password: "",
+    mfaCode: "" 
+  });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [requiresMFA, setRequiresMFA] = useState(false);
+  const [mfaSetupRequired, setMfaSetupRequired] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -32,34 +39,57 @@ const Login = () => {
 
     try {
       const response = await axios.post(
-        "https://backend-8-gn1i.onrender.com/api/auth/login",
-        formData
+        "http://localhost:5000/api/auth/login",
+        {
+          email: formData.email,
+          password: formData.password,
+          ...(requiresMFA && { mfaCode: formData.mfaCode })
+        }
       );
 
-      // Optionally store user info in localStorage
-      const user = response.data.user;
-      localStorage.setItem("user", JSON.stringify(user));
-
-      // Redirect based on user role
-      if (user.role === "admin") {
-        navigate("/admin-dashboard");
-      } else if (user.role === "sales") {
-        navigate("/sales-dashboard");
-      } else if (user.role === "finance") {
-        navigate("/income-statements");
-      } else if (user.role === "investor") {
-        navigate("/income-statements");
-      } else {
-        navigate("/home-page"); // Default to client page
+      // Handle MFA setup requirement
+      if (response.data.requiresMfaSetup) {
+        setMfaSetupRequired(true);
+        navigate("/setup-mfa", { state: { email: formData.email } });
+        return;
       }
+
+      // Store user info and token
+      const { user, token } = response.data;
+      localStorage.setItem("user", JSON.stringify(user));
+      localStorage.setItem("token", token);
+
+      // Redirect based on role with proper permissions
+      redirectBasedOnRole(user.role);
+      
     } catch (err) {
-      if (err.response?.data?.error) {
+      if (err.response?.status === 206) {
+        // Partial content - MFA required but not provided
+        setRequiresMFA(true);
+      } else if (err.response?.data?.error) {
         setError(err.response.data.error);
       } else {
         setError("An error occurred. Please try again.");
       }
     } finally {
       setLoading(false);
+    }
+  };
+
+  const redirectBasedOnRole = (role) => {
+    switch(role) {
+      case "admin":
+        navigate("/developer-dashboard"); // Matches brief's "developer" terminology
+        break;
+      case "sales":
+        navigate("/sales-dashboard", { state: { canEdit: true } });
+        break;
+      case "finance":
+        navigate("/income-statements", { state: { canEdit: true } });
+        break;
+      case "investor":
+        navigate("/income-statements", { state: { canEdit: false } }); // Read-only
+        break;
     }
   };
 
@@ -87,11 +117,14 @@ const Login = () => {
               <div className="login-page-glow-border"></div>
               <h2>Welcome back</h2>
               <p className="login-page-login-text">
-                Do not have an account? <a href="/signup">Sign Up</a>
+                Don't have an account? <a href="/signup">Sign Up</a>
               </p>
+
+              {error && <p className="login-page-error">{error}</p>}
 
               <form onSubmit={handleSubmit}>
                 <div className="login-page-input-wrapper">
+                  <FaEnvelope className="login-page-input-icon" />
                   <input
                     type="email"
                     className="login-page-input"
@@ -104,6 +137,7 @@ const Login = () => {
                 </div>
 
                 <div className="login-page-input-wrapper">
+                  <FaLock className="login-page-input-icon" />
                   <input
                     type="password"
                     className="login-page-input"
@@ -115,16 +149,41 @@ const Login = () => {
                   />
                 </div>
 
-                {error && <p className="login-page-error">{error}</p>}
+                {requiresMFA && (
+                  <div className="login-page-input-wrapper">
+                    <FaShieldAlt className="login-page-input-icon" />
+                    <input
+                      type="text"
+                      className="login-page-input"
+                      name="mfaCode"
+                      value={formData.mfaCode}
+                      onChange={handleChange}
+                      placeholder="MFA Code"
+                      required
+                    />
+                    <small className="mfa-hint">
+                      Check your authenticator app for the 6-digit code
+                    </small>
+                  </div>
+                )}
 
                 <button
                   type="submit"
                   className="login-page-signup-btn"
                   disabled={loading}
                 >
-                  Login
+                  {requiresMFA ? "Verify MFA" : "Login"}
                 </button>
               </form>
+
+              <div className="login-page-footer">
+                <a href="/forgot-password">Forgot password?</a>
+                {requiresMFA && (
+                  <a href="/recover-mfa" className="mfa-recovery-link">
+                    Can't access your MFA device?
+                  </a>
+                )}
+              </div>
             </div>
           </div>
         </div>

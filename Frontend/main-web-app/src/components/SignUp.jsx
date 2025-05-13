@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import { FaUser, FaEnvelope, FaLock } from "react-icons/fa";
+import { FaUser, FaEnvelope, FaLock, FaKey } from "react-icons/fa";
 import "../styles/SignUp.css";
 import "../styles/LoadingScreen.css";
 import robotImage from "/images/ROBOT.png";
@@ -21,13 +21,17 @@ const SignUp = () => {
     username: "",
     email: "",
     password: "",
-    role: "client"
+    role: "client",
+    registrationCode: ""
   });
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [roleLimits, setRoleLimits] = useState({ current: {}, max: {} });
+  const [showCodeField, setShowCodeField] = useState(false);
+
+  const PRIVILEGED_ROLES = ["sales", "finance", "admin", "iwc"];
 
   useEffect(() => {
     // Fetch role limits from backend
@@ -44,7 +48,13 @@ const SignUp = () => {
   }, []);
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+
+    // Show/hide registration code field based on role selection
+    if (name === "role") {
+      setShowCodeField(PRIVILEGED_ROLES.includes(value));
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -53,16 +63,30 @@ const SignUp = () => {
     setError("");
     setSuccess("");
 
+    // Validate registration code for privileged roles
+    if (PRIVILEGED_ROLES.includes(formData.role) && !formData.registrationCode) {
+      setError("Registration code is required for this role");
+      setLoading(false);
+      return;
+    }
+
     try {
       const res = await axios.post("https://backend-8-gn1i.onrender.com/api/auth/signup", formData);
       setSuccess(res.data.message || "Account created successfully!");
-      setTimeout(() => navigate("/login"), 2000);
+      
+      if (res.data.requiresMFA) {
+        setTimeout(() => navigate("/setup-mfa"), 2000);
+      } else {
+        setTimeout(() => navigate("/login"), 2000);
+      }
     } catch (err) {
       const serverMessage = err.response?.data?.error || "Something went wrong. Please try again.";
 
-      // If it's a "role full" error, customize message
+      // Special handling for different error types
       if (serverMessage.includes("Maximum number")) {
         setError("That role is currently full. Please choose a different one.");
+      } else if (serverMessage.includes("registration code")) {
+        setError("Invalid registration code for this role");
       } else {
         setError(serverMessage);
       }
@@ -73,7 +97,7 @@ const SignUp = () => {
 
   if (loading) return <LoadingScreen />;
 
-  const roles = ["client", "admin", "sales", "finance", "investor"];
+  const roles = ["client", "admin", "sales", "finance", "investor", "iwc"];
 
   return (
     <div className="signup-ui-container">
@@ -110,7 +134,7 @@ const SignUp = () => {
               <input
                 type="text"
                 name="username"
-                placeholder="Username"
+                placeholder="Username (min 3 characters)"
                 value={formData.username}
                 onChange={handleChange}
                 className="sign-input"
@@ -165,11 +189,30 @@ const SignUp = () => {
                     <option key={role} value={role} disabled={isFull}>
                       {role.charAt(0).toUpperCase() + role.slice(1)}
                       {isFull ? " (Full)" : ""}
+                      {PRIVILEGED_ROLES.includes(role) && !isFull ? " (Code Required)" : ""}
                     </option>
                   );
                 })}
               </select>
             </div>
+
+            {showCodeField && (
+              <div className="input-wrapper">
+                <FaKey className="input-icon" />
+                <input
+                  type="password"
+                  name="registrationCode"
+                  placeholder="Registration Code"
+                  value={formData.registrationCode}
+                  onChange={handleChange}
+                  className="sign-input"
+                  required={showCodeField}
+                />
+                <small className="code-hint">
+                  Contact your administrator for the registration code
+                </small>
+              </div>
+            )}
 
             <div className="terms">
               <input type="checkbox" required className="tick" id="terms" />
