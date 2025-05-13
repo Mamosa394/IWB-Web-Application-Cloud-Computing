@@ -37,7 +37,7 @@ const SignUp = () => {
     // Fetch role limits from backend
     const fetchRoleLimits = async () => {
       try {
-        const res = await axios.get("https://backend-8-gn1i.onrender.com/api/auth/role-limits");
+        const res = await axios.get("http://localhost:5000/api/auth/role-limits");
         setRoleLimits(res.data);
       } catch (err) {
         console.error("Failed to fetch role limits.");
@@ -71,7 +71,7 @@ const SignUp = () => {
     }
 
     try {
-      const res = await axios.post("https://backend-8-gn1i.onrender.com/api/auth/signup", formData);
+      const res = await axios.post("http://localhost:5000/api/auth/signup", formData);
       setSuccess(res.data.message || "Account created successfully!");
       
       if (res.data.requiresMFA) {
